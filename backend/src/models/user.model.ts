@@ -18,13 +18,13 @@ const userSchema = new Schema<IUser>(
   {
     fullName: {
       type: String,
-      required: true,
+      required: [true, "Full name is required"],
       trim: true,
     },
 
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
@@ -32,8 +32,9 @@ const userSchema = new Schema<IUser>(
 
     password: {
       type: String,
-      required: true,
+      required: [true, "Password is required"],
       minlength: 8,
+      select: false,
     },
 
     role: {
@@ -73,11 +74,15 @@ const userSchema = new Schema<IUser>(
     refreshToken: {
       type: String,
       default: "",
+      select: false,
     },
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 
-export default model<IUser>("User", userSchema);
+const User = model<IUser>("User", userSchema);
+
+export default User;
