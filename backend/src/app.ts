@@ -7,6 +7,7 @@ import path from "path";
 
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
+import bookingRoutes from "./routes/booking.routes";
 const app = express();
 
 app.use(cors());
@@ -15,7 +16,7 @@ app.use(helmet());
 
 
 app.use(morgan("dev"));
-
+app.use("/api/v1/bookings", bookingRoutes);
 app.use(cookieParser());
 
 app.use(express.json());
