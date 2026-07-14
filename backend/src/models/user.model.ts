@@ -18,13 +18,13 @@ const userSchema = new Schema<IUser>(
   {
     fullName: {
       type: String,
-      required: [true, "Full name is required"],
+      required: true,
       trim: true,
     },
 
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
       unique: true,
       lowercase: true,
       trim: true,
@@ -32,8 +32,7 @@ const userSchema = new Schema<IUser>(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: 8,
+      required: true,
       select: false,
     },
 
@@ -46,6 +45,22 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: String,
       default: "",
+    },
+
+    phone: {
+      type: String,
+      default: "",
+    },
+
+    address: {
+      type: String,
+      default: "",
+    },
+
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 250,
     },
 
     trustScore: {
@@ -79,10 +94,7 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-    versionKey: false,
   }
 );
 
-const User = model<IUser>("User", userSchema);
-
-export default User;
+export default model<IUser>("User", userSchema);

@@ -1,16 +1,19 @@
 import { Document } from "mongoose";
-import { UserRole, VerificationStatus } from "../models/user.model";
 
 export interface IUser extends Document {
   fullName: string;
-
   email: string;
-
   password: string;
 
-  role: UserRole;
+  role: string;
 
-  avatar?: string;
+  avatar: string;
+
+  phone: string;
+
+  address: string;
+
+  bio: string;
 
   trustScore: number;
 
@@ -18,9 +21,9 @@ export interface IUser extends Document {
 
   mfaEnabled: boolean;
 
-  verificationStatus: VerificationStatus;
+  verificationStatus: string;
 
-  refreshToken?: string;
+  refreshToken: string;
 
   createdAt: Date;
 
@@ -34,9 +37,15 @@ export interface IUserResponse {
 
   email: string;
 
-  role: UserRole;
+  role: string;
 
   avatar: string;
+
+  phone: string;
+
+  address: string;
+
+  bio: string;
 
   trustScore: number;
 
@@ -44,7 +53,7 @@ export interface IUserResponse {
 
   mfaEnabled: boolean;
 
-  verificationStatus: VerificationStatus;
+  verificationStatus: string;
 
   createdAt: Date;
 
