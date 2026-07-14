@@ -10,6 +10,12 @@ import { LoginDto } from "../dto/auth.dto";
 import { comparePassword } from "../utils/password";
 
 class AuthService {
+  getCurrentUser(userId: string) {
+    throw new Error("Method not implemented.");
+  }
+  refreshToken(refreshToken: any) {
+    throw new Error("Method not implemented.");
+  }
   /**
    * Register User
    */
