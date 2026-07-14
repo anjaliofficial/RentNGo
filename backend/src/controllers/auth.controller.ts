@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 
 import authService from "../services/auth.service";
 
-import { RegisterDto } from "../dto/auth.dto";
+import { LoginDto, RegisterDto } from "../dto/auth.dto";
 
 
 import {
