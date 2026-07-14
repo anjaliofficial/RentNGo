@@ -2,46 +2,45 @@ import { Router } from "express";
 
 import authController from "../controllers/auth.controller";
 
+import { authenticate } from "../middlewares/auth.middleware";
+
 const router = Router();
 
 /**
- * Authentication Routes
+ * Public Routes
  */
 
 // Register
 router.post("/register", authController.register);
 
-router.post("/login", (_req, res) => {
-  res.status(501).json({
-    success: false,
-    message: "Login API not implemented yet.",
-  });
-});
-// Logout (Coming Next)
-router.post("/logout", (_req, res) => {
-  res.status(501).json({
-    success: false,
-    message: "Logout API not implemented yet.",
-  });
-});
+// Login
+router.post("/login", authController.login);
 
-// Refresh Token (Coming Next)
-router.post("/refresh", (_req, res) => {
-  res.status(501).json({
-    success: false,
-    message: "Refresh Token API not implemented yet.",
-  });
-});
+// Refresh Token
+router.post("/refresh", authController.refresh);
 
-// Current User (Coming Next)
-router.get("/me", (_req, res) => {
-  res.status(501).json({
-    success: false,
-    message: "Current User API not implemented yet.",
-  });
-});
+/**
+ * Protected Routes
+ */
 
-// Verify Email (Coming Next)
+// Current User
+router.get(
+  "/me",
+  authenticate,
+  authController.me
+);
+
+// Logout
+router.post(
+  "/logout",
+  authenticate,
+  authController.logout
+);
+
+/**
+ * Coming Soon
+ */
+
 router.post("/verify-email", (_req, res) => {
   res.status(501).json({
     success: false,
@@ -49,7 +48,6 @@ router.post("/verify-email", (_req, res) => {
   });
 });
 
-// Forgot Password (Coming Next)
 router.post("/forgot-password", (_req, res) => {
   res.status(501).json({
     success: false,
@@ -57,7 +55,6 @@ router.post("/forgot-password", (_req, res) => {
   });
 });
 
-// Reset Password (Coming Next)
 router.post("/reset-password", (_req, res) => {
   res.status(501).json({
     success: false,
