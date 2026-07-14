@@ -43,5 +43,6 @@ router.delete(
   equipmentController.deleteEquipment
 );
 
+// Admin Routes
 
 export default router;
