@@ -26,7 +26,7 @@ class NotificationService {
 
       message: body.message,
 
-      type: body.type,
+      type: body.type as never,
     });
   }
 

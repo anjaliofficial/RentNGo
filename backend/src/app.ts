@@ -7,27 +7,42 @@ import path from "path";
 
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
+import equipmentRoutes from "./routes/equipment.routes";
 import bookingRoutes from "./routes/booking.routes";
 import reviewRoutes from "./routes/review.routes";
+import notificationRoutes from "./routes/notification.routes";
 
+import { errorHandler } from "./middlewares/error.middleware";
 const app = express();
+
+/**
+ * -------------------------
+ * Global Middlewares
+ * -------------------------
+ */
 
 app.use(cors());
 
 app.use(helmet());
 
-
 app.use(morgan("dev"));
-app.use("/api/v1/bookings", bookingRoutes);
-app.use("/api/v1/reviews", reviewRoutes);
+
 app.use(cookieParser());
 
 app.use(express.json());
 
-app.use(express.urlencoded({ extended: true }));
-import { errorHandler } from "./middlewares/error.middleware";
-app.use("/api/v1/users", userRoutes);
-// Health Check
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+
+/**
+ * -------------------------
+ * Health Check
+ * -------------------------
+ */
+
 app.get("/", (_req, res) => {
   res.json({
     success: true,
@@ -35,11 +50,45 @@ app.get("/", (_req, res) => {
   });
 });
 
+/**
+ * Optional Favicon
+ */
 app.get("/favicon.ico", (_req, res) => {
-  res.sendFile(path.resolve(__dirname, "../../frontend/app/favicon.ico"));
+  res.sendFile(
+    path.resolve(
+      __dirname,
+      "../../frontend/app/favicon.ico"
+    )
+  );
 });
 
-// API Routes
+/**
+ * -------------------------
+ * API Routes
+ * -------------------------
+ */
+
 app.use("/api/v1/auth", authRoutes);
+
+app.use("/api/v1/users", userRoutes);
+
+app.use("/api/v1/equipment", equipmentRoutes);
+
+app.use("/api/v1/bookings", bookingRoutes);
+
+app.use("/api/v1/reviews", reviewRoutes);
+
+app.use(
+  "/api/v1/notifications",
+  notificationRoutes
+);
+
+/**
+ * -------------------------
+ * Global Error Handler
+ * -------------------------
+ */
+
 app.use(errorHandler);
+
 export default app;
