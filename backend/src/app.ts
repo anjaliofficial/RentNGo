@@ -6,12 +6,13 @@ import cookieParser from "cookie-parser";
 import path from "path";
 
 import authRoutes from "./routes/auth.routes";
-
+import userRoutes from "./routes/user.routes";
 const app = express();
 
 app.use(cors());
 
 app.use(helmet());
+
 
 app.use(morgan("dev"));
 
@@ -21,7 +22,7 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 import { errorHandler } from "./middlewares/error.middleware";
-
+app.use("/api/v1/users", userRoutes);
 // Health Check
 app.get("/", (_req, res) => {
   res.json({
