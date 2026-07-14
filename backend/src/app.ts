@@ -11,7 +11,7 @@ import equipmentRoutes from "./routes/equipment.routes";
 import bookingRoutes from "./routes/booking.routes";
 import reviewRoutes from "./routes/review.routes";
 import notificationRoutes from "./routes/notification.routes";
-
+import wishlistRoutes from "./routes/wishlist.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 const app = express();
 
@@ -81,6 +81,11 @@ app.use("/api/v1/reviews", reviewRoutes);
 app.use(
   "/api/v1/notifications",
   notificationRoutes
+);
+
+app.use(
+  "/api/v1/wishlist",
+  wishlistRoutes
 );
 
 /**
