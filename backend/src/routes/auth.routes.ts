@@ -11,14 +11,12 @@ const router = Router();
 // Register
 router.post("/register", authController.register);
 
-// Login (Coming Next)
 router.post("/login", (_req, res) => {
   res.status(501).json({
     success: false,
     message: "Login API not implemented yet.",
   });
 });
-
 // Logout (Coming Next)
 router.post("/logout", (_req, res) => {
   res.status(501).json({

@@ -4,7 +4,11 @@ import authService from "../services/auth.service";
 
 import { RegisterDto } from "../dto/auth.dto";
 
-import { createdResponse } from "../utils/response";
+
+import {
+  createdResponse,
+  successResponse,
+} from "../utils/response";
 
 class AuthController {
   /**
@@ -29,6 +33,29 @@ class AuthController {
       next(error);
     }
   }
+  /**
+ * POST /api/v1/auth/login
+ */
+async login(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const body: LoginDto = req.body;
+
+    const result = await authService.login(body);
+
+    successResponse(
+      res,
+      "Login successful.",
+      result
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
 }
 
 export default new AuthController();
