@@ -1,5 +1,6 @@
 import reviewRepository from "../repositories/review.repository";
 import bookingRepository from "../repositories/booking.repository";
+import notificationService from "./notification.service";
 
 import User from "../models/user.model";
 import { Types } from "mongoose";
@@ -89,6 +90,14 @@ class ReviewService {
       revieweeId,
       body.rating
     );
+
+    await notificationService.createAndEmitNotification({
+      receiver: revieweeId,
+      sender: reviewerId,
+      title: "New review received",
+      message: "You received a new review.",
+      type: "review",
+    });
 
     return review;
   }

@@ -1,5 +1,6 @@
 import bookingRepository from "../repositories/booking.repository";
 import equipmentRepository from "../repositories/equipment.repository";
+import notificationService from "./notification.service";
 import { Types } from "mongoose";
 
 import { CreateBookingDto } from "../dto/booking.dto";
@@ -104,6 +105,14 @@ class BookingService {
         notes: body.notes,
       });
 
+    await notificationService.createAndEmitNotification({
+      receiver: equipment.owner.toString(),
+      sender: customerId,
+      title: "New booking request",
+      message: `A new booking request was created for ${equipment.title}.`,
+      type: "booking",
+    });
+
     return booking;
   }
 
@@ -181,12 +190,22 @@ class BookingService {
       );
     }
 
-    return bookingRepository.update(
+    const updatedBooking = await bookingRepository.update(
       bookingId,
       {
         bookingStatus: "accepted" as any,
       }
     );
+
+    await notificationService.createAndEmitNotification({
+      receiver: booking.customer.toString(),
+      sender: ownerId,
+      title: "Booking accepted",
+      message: "Your booking request has been accepted.",
+      type: "booking",
+    });
+
+    return updatedBooking;
   }
 
   /**
@@ -217,12 +236,22 @@ class BookingService {
       );
     }
 
-    return bookingRepository.update(
+    const updatedBooking = await bookingRepository.update(
       bookingId,
       {
         bookingStatus: "rejected" as any,
       }
     );
+
+    await notificationService.createAndEmitNotification({
+      receiver: booking.customer.toString(),
+      sender: ownerId,
+      title: "Booking rejected",
+      message: "Your booking request has been rejected.",
+      type: "booking",
+    });
+
+    return updatedBooking;
   }
 
   /**
@@ -254,12 +283,22 @@ class BookingService {
       );
     }
 
-    return bookingRepository.update(
+    const updatedBooking = await bookingRepository.update(
       bookingId,
       {
         bookingStatus: "cancelled" as any,
       }
     );
+
+    await notificationService.createAndEmitNotification({
+      receiver: booking.owner.toString(),
+      sender: customerId,
+      title: "Booking cancelled",
+      message: "The customer cancelled this booking.",
+      type: "booking",
+    });
+
+    return updatedBooking;
   }
 
   /**
@@ -290,12 +329,22 @@ class BookingService {
       );
     }
 
-    return bookingRepository.update(
+    const updatedBooking = await bookingRepository.update(
       bookingId,
       {
         bookingStatus: "completed" as any,
       }
     );
+
+    await notificationService.createAndEmitNotification({
+      receiver: booking.customer.toString(),
+      sender: ownerId,
+      title: "Booking completed",
+      message: "Your booking has been marked as completed.",
+      type: "booking",
+    });
+
+    return updatedBooking;
   }
 }
 

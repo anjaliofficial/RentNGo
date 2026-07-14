@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import notificationRepository from "../repositories/notification.repository";
+import { getIO } from "../socket/socket";
 
 import {
   CreateNotificationDto,
@@ -28,6 +29,26 @@ class NotificationService {
 
       type: body.type as never,
     });
+  }
+
+  /**
+   * Create and emit notification
+   */
+  async createAndEmitNotification(
+    body: CreateNotificationDto
+  ) {
+    const notification =
+      await this.createNotification(body);
+
+    try {
+      getIO()
+        .to(body.receiver)
+        .emit("notification", notification);
+    } catch {
+      // Socket.IO is optional for background notification delivery.
+    }
+
+    return notification;
   }
 
   /**
