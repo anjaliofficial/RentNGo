@@ -1,0 +1,26 @@
+import { Document, Types } from "mongoose";
+
+export enum NotificationType {
+  BOOKING = "booking",
+  REVIEW = "review",
+  PAYMENT = "payment",
+  SYSTEM = "system",
+}
+
+export interface INotification extends Document {
+  receiver: Types.ObjectId;
+
+  sender?: Types.ObjectId;
+
+  title: string;
+
+  message: string;
+
+  type: NotificationType;
+
+  isRead: boolean;
+
+  createdAt: Date;
+
+  updatedAt: Date;
+}
