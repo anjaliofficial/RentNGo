@@ -2,6 +2,7 @@ import reviewRepository from "../repositories/review.repository";
 import bookingRepository from "../repositories/booking.repository";
 
 import User from "../models/user.model";
+import { Types } from "mongoose";
 
 import { CreateReviewDto } from "../dto/review.dto";
 
@@ -76,8 +77,8 @@ class ReviewService {
     // Create review
     const review = await reviewRepository.create({
       booking: booking._id,
-      reviewer: reviewerId,
-      reviewee: revieweeId,
+      reviewer: new Types.ObjectId(reviewerId),
+      reviewee: new Types.ObjectId(revieweeId),
       equipment: booking.equipment,
       rating: body.rating,
       comment: body.comment,

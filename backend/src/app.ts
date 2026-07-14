@@ -8,6 +8,8 @@ import path from "path";
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
 import bookingRoutes from "./routes/booking.routes";
+import reviewRoutes from "./routes/review.routes";
+
 const app = express();
 
 app.use(cors());
@@ -17,6 +19,7 @@ app.use(helmet());
 
 app.use(morgan("dev"));
 app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 app.use(cookieParser());
 
 app.use(express.json());
