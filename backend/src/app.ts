@@ -20,6 +20,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
+import { errorHandler } from "./middlewares/error.middleware";
 
 // Health Check
 app.get("/", (_req, res) => {
@@ -35,5 +36,5 @@ app.get("/favicon.ico", (_req, res) => {
 
 // API Routes
 app.use("/api/v1/auth", authRoutes);
-
+app.use(errorHandler);
 export default app;

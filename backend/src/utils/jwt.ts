@@ -63,9 +63,9 @@ export const verifyAccessToken = (
  */
 export const verifyRefreshToken = (
   token: string
-): JwtPayload => {
+) => {
   return jwt.verify(
     token,
-    REFRESH_TOKEN_SECRET
+    process.env.JWT_REFRESH_SECRET!
   ) as JwtPayload;
 };

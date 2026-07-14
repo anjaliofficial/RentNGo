@@ -45,7 +45,7 @@ class AuthRepository {
   }
 
   /**
-   * Verify Refresh Token
+   * Find user by Refresh Token
    */
   async findByRefreshToken(
     refreshToken: string
