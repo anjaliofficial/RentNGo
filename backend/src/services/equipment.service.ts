@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
-
 import equipmentRepository from "../repositories/equipment.repository";
+
+import { EquipmentSearchDto } from "../dto/equipment-search.dto";
 
 import {
   CreateEquipmentDto,
@@ -8,6 +8,7 @@ import {
 } from "../dto/equipment.dto";
 
 import ApiError from "../error/ApiError";
+import { Types } from "mongoose";
 
 class EquipmentService {
   /**
@@ -17,13 +18,10 @@ class EquipmentService {
     ownerId: string,
     body: CreateEquipmentDto
   ) {
-    const equipment =
-      await equipmentRepository.create({
-        ...body,
-        owner: new mongoose.Types.ObjectId(ownerId),
-      });
-
-    return equipment;
+    return equipmentRepository.create({
+      ...body,
+      owner: new Types.ObjectId(ownerId),
+    });
   }
 
   /**
@@ -31,6 +29,37 @@ class EquipmentService {
    */
   async getAllEquipment() {
     return equipmentRepository.findAll();
+  }
+
+  /**
+   * Search Equipment
+   */
+  async searchEquipment(
+    filters: EquipmentSearchDto
+  ) {
+    // Validate page
+    if (filters.page && filters.page < 1) {
+      filters.page = 1;
+    }
+
+    // Validate limit
+    if (filters.limit && filters.limit < 1) {
+      filters.limit = 10;
+    }
+
+    // Validate price range
+    if (
+      filters.minPrice !== undefined &&
+      filters.maxPrice !== undefined &&
+      filters.minPrice > filters.maxPrice
+    ) {
+      throw new ApiError(
+        400,
+        "Minimum price cannot be greater than maximum price."
+      );
+    }
+
+    return equipmentRepository.search(filters);
   }
 
   /**
@@ -51,7 +80,7 @@ class EquipmentService {
   }
 
   /**
-   * Get Logged In User Equipment
+   * Get Logged In Owner Equipment
    */
   async getMyEquipment(ownerId: string) {
     return equipmentRepository.findByOwner(ownerId);
@@ -66,9 +95,7 @@ class EquipmentService {
     body: UpdateEquipmentDto
   ) {
     const equipment =
-      await equipmentRepository.findById(
-        equipmentId
-      );
+      await equipmentRepository.findById(equipmentId);
 
     if (!equipment) {
       throw new ApiError(
@@ -77,9 +104,7 @@ class EquipmentService {
       );
     }
 
-    if (
-      equipment.owner.toString() !== ownerId
-    ) {
+    if (equipment.owner.toString() !== ownerId) {
       throw new ApiError(
         403,
         "You are not allowed to update this equipment."
@@ -100,9 +125,7 @@ class EquipmentService {
     ownerId: string
   ) {
     const equipment =
-      await equipmentRepository.findById(
-        equipmentId
-      );
+      await equipmentRepository.findById(equipmentId);
 
     if (!equipment) {
       throw new ApiError(
@@ -111,18 +134,14 @@ class EquipmentService {
       );
     }
 
-    if (
-      equipment.owner.toString() !== ownerId
-    ) {
+    if (equipment.owner.toString() !== ownerId) {
       throw new ApiError(
         403,
         "You are not allowed to delete this equipment."
       );
     }
 
-    await equipmentRepository.delete(
-      equipmentId
-    );
+    await equipmentRepository.delete(equipmentId);
 
     return {
       message:

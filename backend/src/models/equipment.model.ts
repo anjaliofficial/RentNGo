@@ -24,6 +24,7 @@ const equipmentSchema = new Schema<IEquipment>(
     description: {
       type: String,
       required: true,
+      trim: true,
     },
 
     category: {
@@ -35,6 +36,7 @@ const equipmentSchema = new Schema<IEquipment>(
     brand: {
       type: String,
       default: "",
+      trim: true,
     },
 
     condition: {
@@ -57,11 +59,13 @@ const equipmentSchema = new Schema<IEquipment>(
     securityDeposit: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     location: {
       type: String,
       required: true,
+      trim: true,
     },
 
     available: {
@@ -78,22 +82,71 @@ const equipmentSchema = new Schema<IEquipment>(
     averageRating: {
       type: Number,
       default: 0,
+      min: 0,
+      max: 5,
     },
 
     totalReviews: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     totalBookings: {
       type: Number,
       default: 0,
+      min: 0,
     },
   },
   {
     timestamps: true,
   }
 );
+
+/**
+ * -------------------------
+ * Database Indexes
+ * -------------------------
+ */
+
+// Full-text search
+equipmentSchema.index({
+  title: "text",
+  description: "text",
+});
+
+// Search Filters
+equipmentSchema.index({
+  category: 1,
+});
+
+equipmentSchema.index({
+  location: 1,
+});
+
+equipmentSchema.index({
+  condition: 1,
+});
+
+equipmentSchema.index({
+  available: 1,
+});
+
+equipmentSchema.index({
+  pricePerDay: 1,
+});
+
+equipmentSchema.index({
+  owner: 1,
+});
+
+equipmentSchema.index({
+  averageRating: -1,
+});
+
+equipmentSchema.index({
+  createdAt: -1,
+});
 
 export default model<IEquipment>(
   "Equipment",

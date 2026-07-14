@@ -97,7 +97,7 @@ async search(
   if (search) {
     query.$or = [
       {
-        name: {
+        title: {
           $regex: search,
           $options: "i",
         },

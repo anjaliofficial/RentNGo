@@ -43,6 +43,10 @@ router.delete(
   equipmentController.deleteEquipment
 );
 
+router.get(
+  "/",
+  equipmentController.getAllEquipment
+);
 // Admin Routes
 
 export default router;

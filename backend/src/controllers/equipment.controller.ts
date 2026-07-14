@@ -171,6 +171,59 @@ class EquipmentController {
       next(error);
     }
   }
+  /**
+ * Search Equipment
+ */
+async searchEquipment(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const result =
+      await equipmentService.searchEquipment({
+        search: req.query.search as string,
+        category: req.query.category as string,
+        location: req.query.location as string,
+        condition: req.query.condition as string,
+
+        available:
+          req.query.available === undefined
+            ? undefined
+            : req.query.available === "true",
+
+        minPrice: req.query.minPrice
+          ? Number(req.query.minPrice)
+          : undefined,
+
+        maxPrice: req.query.maxPrice
+          ? Number(req.query.maxPrice)
+          : undefined,
+
+        sort: req.query.sort as
+          | "latest"
+          | "oldest"
+          | "price"
+          | "rating",
+
+        page: req.query.page
+          ? Number(req.query.page)
+          : 1,
+
+        limit: req.query.limit
+          ? Number(req.query.limit)
+          : 10,
+      });
+
+    successResponse(
+      res,
+      "Equipment fetched successfully.",
+      result
+    );
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 export default new EquipmentController();
