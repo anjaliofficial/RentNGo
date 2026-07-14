@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 import authRoutes from "./routes/auth.routes";
 
@@ -26,6 +27,10 @@ app.get("/", (_req, res) => {
     success: true,
     message: "RentNGo API is running 🚀",
   });
+});
+
+app.get("/favicon.ico", (_req, res) => {
+  res.sendFile(path.resolve(__dirname, "../../frontend/app/favicon.ico"));
 });
 
 // API Routes
