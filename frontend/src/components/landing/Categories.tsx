@@ -1,51 +1,63 @@
 import {
-  Camera,
-  Drill,
-  Tent,
-  Guitar,
-  Laptop,
-  Bike,
+    Camera,
+    Hammer,
+    Tent,
+    Plane
 } from "lucide-react";
 
 const categories = [
-  { name: "Camera", icon: Camera },
-  { name: "Power Tools", icon: Drill },
-  { name: "Camping", icon: Tent },
-  { name: "Music", icon: Guitar },
-  { name: "Electronics", icon: Laptop },
-  { name: "Sports", icon: Bike },
+    {
+        icon: Camera,
+        title: "Camera"
+    },
+    {
+        icon: Plane,
+        title: "Drone"
+    },
+    {
+        icon: Hammer,
+        title: "Tools"
+    },
+    {
+        icon: Tent,
+        title: "Camping"
+    }
 ];
 
 export default function Categories() {
-  return (
-    <section className="py-20">
-      <div className="mx-auto max-w-7xl px-4">
-        <h2 className="mb-10 text-center text-4xl font-bold">
-          Browse Categories
-        </h2>
+    return (
+        <section className="py-20 bg-white">
 
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          {categories.map((category) => {
-            const Icon = category.icon;
+            <div className="max-w-7xl mx-auto px-6">
 
-            return (
-              <div
-                key={category.name}
-                className="cursor-pointer rounded-xl border bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-              >
-                <Icon
-                  size={40}
-                  className="mx-auto mb-4 text-blue-600"
-                />
+                <h2 className="text-4xl font-bold text-center">
+                    Popular Categories
+                </h2>
 
-                <h3 className="font-semibold">
-                  {category.name}
-                </h3>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
+                <div className="grid md:grid-cols-4 gap-8 mt-12">
+
+                    {categories.map((item) => (
+                        <div
+                            key={item.title}
+                            className="rounded-3xl border bg-slate-50 p-10 text-center shadow-lg transition hover:-translate-y-2 hover:shadow-2xl"
+                        >
+
+                            <item.icon
+                                className="mx-auto mb-6 text-blue-600"
+                                size={52}
+                            />
+
+                            <h3 className="text-xl font-bold">
+                                {item.title}
+                            </h3>
+
+                        </div>
+                    ))}
+
+                </div>
+
+            </div>
+
+        </section>
+    );
 }

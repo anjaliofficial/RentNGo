@@ -17,10 +17,19 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6">
             <Link href="/">Home</Link>
-            <Link href="/equipment">Equipment</Link>
-            <Link href="/(auth)/login">Login</Link>
+
+            <Link href="/equipment">
+              Equipment
+            </Link>
+
+            {/* FIXED */}
+            <Link href="/login">
+              Login
+            </Link>
+
+            {/* FIXED */}
             <Link
-              href="/(auth)/register"
+              href="/register"
               className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
               Register
