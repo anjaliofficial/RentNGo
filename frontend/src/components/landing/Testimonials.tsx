@@ -19,7 +19,7 @@ const testimonials = [
 export default function Testimonials() {
   return (
     <section className="bg-gray-100 py-20">
-      <div className="mx-auto max-w-7xl px-4">
+      <div className="mx-auto max-w-7xZl px-4">
         <h2 className="mb-12 text-center text-4xl font-bold">
           What Our Users Say
         </h2>

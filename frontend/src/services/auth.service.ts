@@ -1,23 +1,16 @@
 import api from "./api";
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData {
-  fullName: string;
-  email: string;
-  password: string;
-}
+import { RegisterDto } from "@/types/auth.types";
 
 class AuthService {
-  login(data: LoginData) {
-    return api.post("/auth/login", data);
+  register(data: RegisterDto) {
+    return api.post("/auth/register", data);
   }
 
-  register(data: RegisterData) {
-    return api.post("/auth/register", data);
+  login(data: {
+    email: string;
+    password: string;
+  }) {
+    return api.post("/auth/login", data);
   }
 
   me() {
@@ -25,7 +18,7 @@ class AuthService {
   }
 
   logout() {
-    localStorage.removeItem("accessToken");
+    return api.post("/auth/logout");
   }
 }
 
