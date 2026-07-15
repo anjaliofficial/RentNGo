@@ -88,11 +88,22 @@ app.use(
   wishlistRoutes
 );
 
+import uploadRoutes from "./routes/upload.routes";
 /**
  * -------------------------
  * Global Error Handler
  * -------------------------
  */
+app.use(
+  "/uploads",
+  express.static(
+    path.join(__dirname, "../uploads")
+  )
+);
+app.use(
+  "/api/v1/upload",
+  uploadRoutes
+);
 
 app.use(errorHandler);
 
