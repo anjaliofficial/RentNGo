@@ -1,15 +1,15 @@
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import Hero from "@/components/landing/Hero";
+
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-blue-600">
-          RentNGo
-        </h1>
+    <>
+      <Navbar />
 
-        <p className="mt-4 text-lg text-gray-600">
-          Secure Equipment Rental Platform
-        </p>
-      </div>
-    </main>
+      <Hero />
+
+      <Footer />
+    </>
   );
 }
