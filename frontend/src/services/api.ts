@@ -8,38 +8,17 @@ const api = axios.create({
   withCredentials: true,
 });
 
-/**
- * Request Interceptor
- */
-api.interceptors.request.use(
-  (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("accessToken");
+// Attach JWT token automatically
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("accessToken");
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-/**
- * Response Interceptor
- */
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("accessToken");
-      }
-    }
-
-    return Promise.reject(error);
   }
-);
+
+  return config;
+});
 
 export default api;
