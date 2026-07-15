@@ -7,14 +7,16 @@ import toast from "react-hot-toast";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { z } from "zod";
 
 import authService from "@/services/auth.service";
+import { useAuthStore } from "@/store/auth.store";
 
 const loginSchema = z.object({
   email: z.email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters"),
 });
 
 type LoginSchema = z.infer<typeof loginSchema>;
@@ -22,7 +24,12 @@ type LoginSchema = z.infer<typeof loginSchema>;
 export default function LoginForm() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const setAuth = useAuthStore(
+    (state) => state.setAuth
+  );
+
+  const [loading, setLoading] =
+    useState(false);
 
   const {
     register,
@@ -32,24 +39,22 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginSchema) => {
+  const onSubmit = async (
+    data: LoginSchema
+  ) => {
     try {
       setLoading(true);
 
-      const res = await authService.login(data);
+      const res =
+        await authService.login(data);
 
-      toast.success(res.data.message);
-
-      // Temporary token storage
-      localStorage.setItem(
-        "accessToken",
-        res.data.data.accessToken
-      );
-
-      localStorage.setItem(
-        "refreshToken",
+      setAuth(
+        res.data.data.user,
+        res.data.data.accessToken,
         res.data.data.refreshToken
       );
+
+      toast.success(res.data.message);
 
       router.push("/");
     } catch (err: any) {
@@ -79,8 +84,9 @@ export default function LoginForm() {
         <div>
           <input
             {...register("email")}
+            type="email"
             placeholder="Email"
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-600"
           />
 
           <p className="mt-1 text-sm text-red-500">
@@ -93,7 +99,7 @@ export default function LoginForm() {
             type="password"
             {...register("password")}
             placeholder="Password"
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-600"
           />
 
           <p className="mt-1 text-sm text-red-500">
@@ -103,18 +109,20 @@ export default function LoginForm() {
 
         <button
           disabled={loading}
-          className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+          className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
         >
-          {loading ? "Logging In..." : "Login"}
+          {loading
+            ? "Logging In..."
+            : "Login"}
         </button>
       </form>
 
-      <p className="mt-6 text-center">
+      <p className="mt-6 text-center text-gray-600">
         Don't have an account?
 
         <Link
           href="/register"
-          className="ml-2 text-blue-600"
+          className="ml-2 font-semibold text-blue-600 hover:underline"
         >
           Register
         </Link>

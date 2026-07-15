@@ -20,9 +20,14 @@ import {
 } from "@/lib/validators";
 
 import authService from "@/services/auth.service";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function RegisterForm() {
   const router = useRouter();
+
+  const setAuth = useAuthStore(
+    (state) => state.setAuth
+  );
 
   const [loading, setLoading] =
     useState(false);
@@ -44,9 +49,15 @@ export default function RegisterForm() {
       const res =
         await authService.register(data);
 
+      setAuth(
+        res.data.data.user,
+        res.data.data.accessToken,
+        res.data.data.refreshToken
+      );
+
       toast.success(res.data.message);
 
-      router.push("/login");
+      router.push("/");
     } catch (err: any) {
       toast.error(
         err.response?.data?.message ??
@@ -59,7 +70,6 @@ export default function RegisterForm() {
 
   return (
     <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-
       <h1 className="mb-2 text-center text-3xl font-bold">
         Create Account
       </h1>
@@ -76,7 +86,7 @@ export default function RegisterForm() {
           <input
             {...register("fullName")}
             placeholder="Full Name"
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-600"
           />
 
           <p className="mt-1 text-sm text-red-500">
@@ -87,8 +97,9 @@ export default function RegisterForm() {
         <div>
           <input
             {...register("email")}
+            type="email"
             placeholder="Email"
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-600"
           />
 
           <p className="mt-1 text-sm text-red-500">
@@ -101,7 +112,7 @@ export default function RegisterForm() {
             type="password"
             {...register("password")}
             placeholder="Password"
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-600"
           />
 
           <p className="mt-1 text-sm text-red-500">
@@ -111,7 +122,7 @@ export default function RegisterForm() {
 
         <button
           disabled={loading}
-          className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+          className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
         >
           {loading
             ? "Creating Account..."
@@ -119,12 +130,12 @@ export default function RegisterForm() {
         </button>
       </form>
 
-      <p className="mt-6 text-center">
+      <p className="mt-6 text-center text-gray-600">
         Already have an account?
 
         <Link
           href="/login"
-          className="ml-2 text-blue-600"
+          className="ml-2 font-semibold text-blue-600 hover:underline"
         >
           Login
         </Link>
