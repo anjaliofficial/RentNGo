@@ -15,8 +15,11 @@ class BookingService {
     customerId: string,
     body: CreateBookingDto
   ) {
+    // Use the raw (unpopulated) lookup here — populated docs don't get
+    // cast back down to a plain ObjectId when assigned to another
+    // model's ref field, which corrupted the booking's `owner` field.
     const equipment =
-      await equipmentRepository.findById(
+      await equipmentRepository.findRawById(
         body.equipmentId
       );
 

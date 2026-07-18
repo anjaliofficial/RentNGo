@@ -38,10 +38,6 @@ export default function Sidebar() {
         </div>
       )}
 
-      <button className="mx-4 mb-4 rounded-lg bg-secondary-500 px-3 py-2 text-xs font-semibold text-white hover:bg-secondary-600">
-        Verify ID
-      </button>
-
       <nav className="flex flex-1 flex-col gap-1 px-3">
         {DASHBOARD_NAV.map((item) => {
           const active = pathname === item.href;
