@@ -3,7 +3,7 @@ import { Router } from "express";
 import bookingController from "../controllers/booking.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
-import { authorize } from "../middlewares/role.middleware";
+import { authorize, MEMBER_ROLES } from "../middlewares/role.middleware";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ const router = Router();
 router.post(
   "/",
   authenticate,
-  authorize("customer"),
+  authorize(...MEMBER_ROLES),
   bookingController.createBooking
 );
 
@@ -23,7 +23,7 @@ router.post(
 router.get(
   "/my-bookings",
   authenticate,
-  authorize("customer"),
+  authorize(...MEMBER_ROLES),
   bookingController.getMyBookings
 );
 
@@ -35,7 +35,7 @@ router.get(
 router.get(
   "/owner",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   bookingController.getOwnerBookings
 );
 
@@ -43,7 +43,7 @@ router.get(
 router.patch(
   "/:id/accept",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   bookingController.acceptBooking
 );
 
@@ -51,15 +51,23 @@ router.patch(
 router.patch(
   "/:id/reject",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   bookingController.rejectBooking
 );
 
-// Complete booking
+// Confirm pickup (accepted -> active)
+router.patch(
+  "/:id/pickup",
+  authenticate,
+  authorize(...MEMBER_ROLES, "admin"),
+  bookingController.confirmPickup
+);
+
+// Complete booking (active -> completed)
 router.patch(
   "/:id/complete",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   bookingController.completeBooking
 );
 
@@ -70,7 +78,7 @@ router.patch(
 router.patch(
   "/:id/cancel",
   authenticate,
-  authorize("customer"),
+  authorize(...MEMBER_ROLES),
   bookingController.cancelBooking
 );
 

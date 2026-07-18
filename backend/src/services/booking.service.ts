@@ -106,7 +106,7 @@ class BookingService {
       });
 
     await notificationService.createAndEmitNotification({
-      receiver: equipment.owner.toString(),
+      receiver: booking.owner.toString(),
       sender: customerId,
       title: "New booking request",
       message: `A new booking request was created for ${equipment.title}.`,
@@ -302,7 +302,61 @@ class BookingService {
   }
 
   /**
-   * Complete Booking
+   * Confirm Pickup (accepted -> active)
+   */
+  async confirmPickup(
+    bookingId: string,
+    ownerId: string
+  ) {
+    const booking =
+      await bookingRepository.findRawById(
+        bookingId
+      );
+
+    if (!booking) {
+      throw new ApiError(
+        404,
+        "Booking not found."
+      );
+    }
+
+    if (
+      booking.owner.toString() !== ownerId
+    ) {
+      throw new ApiError(
+        403,
+        "You are not allowed to confirm pickup for this booking."
+      );
+    }
+
+    if (booking.bookingStatus !== "accepted") {
+      throw new ApiError(
+        400,
+        "Booking must be accepted before pickup can be confirmed."
+      );
+    }
+
+    const updatedBooking = await bookingRepository.update(
+      bookingId,
+      {
+        bookingStatus: "active" as any,
+        pickupStatus: "picked_up" as any,
+      }
+    );
+
+    await notificationService.createAndEmitNotification({
+      receiver: booking.customer.toString(),
+      sender: ownerId,
+      title: "Pickup confirmed",
+      message: "Your rental has started — pickup was confirmed by the owner.",
+      type: "booking",
+    });
+
+    return updatedBooking;
+  }
+
+  /**
+   * Complete Booking (active -> completed)
    */
   async completeBooking(
     bookingId: string,
@@ -329,10 +383,18 @@ class BookingService {
       );
     }
 
+    if (booking.bookingStatus !== "active") {
+      throw new ApiError(
+        400,
+        "Booking must be active (picked up) before it can be completed."
+      );
+    }
+
     const updatedBooking = await bookingRepository.update(
       bookingId,
       {
         bookingStatus: "completed" as any,
+        returnStatus: "returned" as any,
       }
     );
 

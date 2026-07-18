@@ -209,6 +209,31 @@ class BookingController {
   }
 
   /**
+   * PATCH /api/v1/bookings/:id/pickup
+   */
+  async confirmPickup(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const booking =
+        await bookingService.confirmPickup(
+          req.params.id as string,
+          req.user!.userId
+        );
+
+      successResponse(
+        res,
+        "Pickup confirmed successfully.",
+        booking
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * PATCH /api/v1/bookings/:id/complete
    */
   async completeBooking(

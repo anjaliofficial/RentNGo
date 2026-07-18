@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import equipmentController from "../controllers/equipment.controller";
 import { authenticate } from "../middlewares/auth.middleware";
-import { authorize } from "../middlewares/role.middleware";
+import { authorize, MEMBER_ROLES } from "../middlewares/role.middleware";
 const router = Router();
 
 /**
@@ -19,7 +19,7 @@ router.get("/search", equipmentController.searchEquipment);
 router.get(
   "/my-items",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   equipmentController.getMyEquipment
 );
 
@@ -36,21 +36,21 @@ router.get(
 router.post(
   "/",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   equipmentController.createEquipment
 );
 
 router.put(
   "/:id",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   equipmentController.updateEquipment
 );
 
 router.delete(
   "/:id",
   authenticate,
-  authorize("owner", "admin"),
+  authorize(...MEMBER_ROLES, "admin"),
   equipmentController.deleteEquipment
 );
 
