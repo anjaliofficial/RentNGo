@@ -1,113 +1,40 @@
 "use client";
 
-import { Bell, Heart, Menu, Search } from "lucide-react";
-import { useAuthStore } from "@/store/auth.store";
+import { Bell, Globe, Search } from "lucide-react";
+import { Avatar } from "../ui";
+import { useAuth } from "../auth/AuthProvider";
 
-export default function Topbar() {
-  const { user } = useAuthStore();
+export default function Topbar({ crumb = "Dashboard" }: { crumb?: string }) {
+  const { user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-lg">
-      <div className="flex h-20 items-center justify-between px-8">
+    <header className="flex h-16 items-center justify-between border-b border-neutral-100 bg-white px-6">
+      <p className="text-sm text-neutral-500">
+        Account <span className="mx-1">/</span>
+        <span className="font-medium text-primary-900">{crumb}</span>
+      </p>
 
-        {/* Left */}
-
-        <div className="flex items-center gap-5">
-
-          <button className="rounded-lg p-2 hover:bg-slate-100 lg:hidden">
-            <Menu size={24} />
-          </button>
-
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800">
-              Dashboard
-            </h1>
-
-            <p className="text-sm text-slate-500">
-              Welcome back,
-              <span className="ml-1 font-semibold text-blue-600">
-                {user?.fullName ?? "User"}
-              </span>
-            </p>
-          </div>
-
-        </div>
-
-        {/* Right */}
-
-        <div className="flex items-center gap-5">
-
-          {/* Search */}
-
-          <div className="relative hidden md:block">
-
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-
-            <input
-              type="text"
-              placeholder="Search equipment..."
-              className="w-80 rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 outline-none transition focus:border-blue-500 focus:bg-white"
-            />
-
-          </div>
-
-          {/* Wishlist */}
-
-          <button className="relative rounded-xl bg-slate-100 p-3 transition hover:bg-pink-100">
-
-            <Heart
-              size={20}
-              className="text-pink-500"
-            />
-
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-xs text-white">
-              0
-            </span>
-
-          </button>
-
-          {/* Notification */}
-
-          <button className="relative rounded-xl bg-slate-100 p-3 transition hover:bg-blue-100">
-
-            <Bell
-              size={20}
-              className="text-blue-600"
-            />
-
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              0
-            </span>
-
-          </button>
-
-          {/* User */}
-
-          <div className="flex items-center gap-3 rounded-xl border bg-white px-3 py-2 shadow-sm">
-
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg font-bold text-white">
-              {user?.fullName?.charAt(0) ?? "U"}
-            </div>
-
-            <div className="hidden md:block">
-
-              <p className="font-semibold text-slate-800">
-                {user?.fullName ?? "User"}
-              </p>
-
-              <p className="text-sm text-slate-500">
-                {user?.role ?? "Member"}
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
+      <div className="flex items-center gap-4">
+        <button
+          aria-label="Search"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-50"
+        >
+          <Search className="h-4 w-4" />
+        </button>
+        <button
+          aria-label="Language"
+          className="hidden h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-50 md:flex"
+        >
+          <Globe className="h-4 w-4" />
+        </button>
+        <button
+          aria-label="Notifications"
+          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-50"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-secondary-500" />
+        </button>
+        {user && <Avatar name={user.name} size={32} />}
       </div>
     </header>
   );

@@ -8,14 +8,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
 
-import { registerSchema, RegisterSchema } from "@/lib/validators";
-import authService from "@/services/auth.service";
-import { useAuthStore } from "@/store/auth.store";
+import { registerSchema, RegisterSchema } from "../../lib/validators";
+import { apiClient } from "../../lib/api-client";
+
+const TRUST_POINTS = ["Verified Community", "Secure Escrow Payments", "Damage Protection"];
 
 export default function RegisterForm() {
   const router = useRouter();
-  const setAuth = useAuthStore((state) => state.setAuth);
-
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -28,10 +27,13 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       setLoading(true);
-      const res = await authService.register(data);
-      setAuth(res.data.data.user, res.data.data.accessToken, res.data.data.refreshToken);
-      toast.success(res.data.message || "Registration successful!");
-      router.push("/");
+      const res = await apiClient.post("/api/auth/register", {
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+      });
+      toast.success(res.data.message ?? "Registration successful!");
+      router.push("/login?registered=1");
     } catch (err: any) {
       toast.error(err.response?.data?.message ?? "Registration failed");
     } finally {
@@ -40,26 +42,30 @@ export default function RegisterForm() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200">
-      <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-2 gap-12 px-8">
-        
+    <section className="min-h-screen bg-neutral-50">
+      <div className="mx-auto grid min-h-screen max-w-7xl gap-12 px-8 lg:grid-cols-2">
         {/* LEFT PANEL */}
-        <div className="hidden items-center justify-center lg:flex">
-          <div className="max-w-xl">
-            <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+        <div className="hidden items-center justify-center bg-primary-900 lg:flex">
+          <div className="max-w-md px-6">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 font-label text-xs font-semibold uppercase tracking-wide text-tertiary-300">
               Join RentNGo Today
             </span>
-            <h1 className="mt-8 text-6xl font-black leading-tight text-slate-900">
-              Start Renting<br />In Minutes.
+            <h1 className="mt-8 font-headline text-5xl font-bold leading-tight text-white">
+              Start Renting
+              <br />
+              In Minutes.
             </h1>
-            <p className="mt-8 text-lg leading-8 text-slate-600">
-              Discover cameras, drones, tools, camping gear and hundreds of verified equipment from trusted owners across Nepal.
+            <p className="mt-6 text-base leading-relaxed text-primary-200">
+              Discover cameras, drones, tools, camping gear and hundreds of
+              verified equipment from trusted owners.
             </p>
-            <div className="mt-12 space-y-6">
-              {["Verified Community", "Secure Payments", "Damage Protection"].map((item) => (
-                <div key={item} className="flex items-center gap-4">
-                  <ShieldCheck className="text-blue-600" size={28} />
-                  <p className="text-lg">{item}</p>
+            <div className="mt-10 space-y-5">
+              {TRUST_POINTS.map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-tertiary-500/20">
+                    <ShieldCheck className="h-4.5 w-4.5 text-tertiary-400" />
+                  </span>
+                  <p className="text-sm text-white">{item}</p>
                 </div>
               ))}
             </div>
@@ -67,102 +73,106 @@ export default function RegisterForm() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div className="flex items-center justify-center">
-          <div className="w-full max-w-2xl rounded-3xl border border-white/40 bg-white/90 p-14 shadow-2xl backdrop-blur-xl">
-            
-            <div className="mb-10 text-center">
-              <h1 className="text-4xl font-black text-slate-900">Create Account 🚀</h1>
-              <p className="mt-3 text-gray-500">Join the trusted equipment rental community.</p>
-            </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="w-full max-w-md">
+            <Link href="/" className="mb-8 flex items-center justify-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-900">
+                <ShieldCheck className="h-5 w-5 text-tertiary-400" />
+              </span>
+              <span className="font-headline text-xl font-bold text-primary-900">RentNGo</span>
+            </Link>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-              {/* Full Name */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Full Name</label>
-                <div className="relative">
-                  <User size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    {...register("fullName")}
-                    placeholder="John Doe"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 py-4 pl-12 pr-4 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-                </div>
-                {errors.fullName && <p className="mt-2 text-sm text-red-500">{errors.fullName.message}</p>}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
-                <div className="relative">
-                  <Mail size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="email"
-                    {...register("email")}
-                    placeholder="you@example.com"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 py-4 pl-12 pr-4 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-                </div>
-                {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email.message}</p>}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
-                <div className="relative">
-                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    {...register("password")}
-                    placeholder="Create password"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 py-4 pl-12 pr-12 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-                {errors.password && <p className="mt-2 text-sm text-red-500">{errors.password.message}</p>}
-              </div>
-
-              {/* Terms */}
-              <div className="flex items-start gap-3 text-sm text-gray-600">
-                <input type="checkbox" required className="mt-1" />
-                <p>
-                  I agree to the{" "}
-                  <span className="font-semibold text-blue-600">Terms & Conditions</span> and{" "}
-                  <span className="font-semibold text-blue-600">Privacy Policy</span>.
+            <div className="card">
+              <div className="text-center">
+                <h1 className="font-headline text-xl font-bold text-primary-900">
+                  Create your account
+                </h1>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Identity verification unlocks lower deposits as your trust score grows.
                 </p>
               </div>
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-4 font-bold text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "Creating Account..." : "Create Account"}
-                {!loading && <ArrowRight size={20} />}
-              </button>
-            </form>
+              <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      {...register("fullName")}
+                      placeholder="Jamie Lee"
+                      className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-secondary-500"
+                    />
+                  </div>
+                  {errors.fullName && (
+                    <p className="mt-1 text-xs text-red-500">{errors.fullName.message}</p>
+                  )}
+                </div>
 
-            {/* Divider */}
-            <div className="my-10 flex items-center">
-              <div className="h-px flex-1 bg-gray-300" />
-              <span className="mx-4 text-sm text-gray-500">OR</span>
-              <div className="h-px flex-1 bg-gray-300" />
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      type="email"
+                      {...register("email")}
+                      placeholder="you@example.com"
+                      className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-secondary-500"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      {...register("password")}
+                      placeholder="At least 8 characters"
+                      className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-secondary-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
+                  )}
+                </div>
+
+                <label className="flex items-start gap-2.5 pt-1 text-xs text-neutral-500">
+                  <input type="checkbox" required className="mt-0.5 accent-secondary-500" />
+                  I agree to the{" "}
+                  <span className="font-semibold text-secondary-600">Terms & Conditions</span>{" "}
+                  and <span className="font-semibold text-secondary-600">Privacy Policy</span>.
+                </label>
+
+                <button type="submit" disabled={loading} className="btn-primary w-full">
+                  {loading ? "Creating Account..." : "Create Account"}
+                  {!loading && <ArrowRight className="h-4 w-4" />}
+                </button>
+              </form>
             </div>
 
-            {/* Login Link */}
-            <p className="text-center text-gray-600">
-              Already have an account?
-              <Link href="/login" className="ml-2 font-bold text-blue-600 hover:underline">
-                Login
+            <p className="mt-6 text-center text-sm text-neutral-500">
+              Already have an account?{" "}
+              <Link href="/login" className="font-semibold text-secondary-600 hover:text-secondary-700">
+                Sign in
               </Link>
             </p>
-
           </div>
         </div>
       </div>

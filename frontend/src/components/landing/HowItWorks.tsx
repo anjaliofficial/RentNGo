@@ -1,59 +1,81 @@
-const steps = [
+import { ShieldCheck, Lock, TrendingUp } from "lucide-react";
+import Container from "../layout/Container";
+
+const PILLARS = [
   {
-    number: "01",
-    title: "Search",
+    icon: ShieldCheck,
+    step: "01",
+    title: "Biometric ID Verification",
     description:
-      "Find the equipment you need from trusted owners.",
+      "Every member undergoes a multi-point identity audit before joining the community to ensure accountability.",
+    points: ["Govt ID Validation", "Live Liveness Check"],
   },
   {
-    number: "02",
-    title: "Book",
+    icon: Lock,
+    step: "02",
+    title: "Escrow Protection",
     description:
-      "Choose your rental dates and send a booking request.",
+      "Payments are held in a secure vault and only released once the borrower confirms successful equipment inspection.",
+    points: ["Instant Fraud Detection", "256-bit Encryption"],
   },
   {
-    number: "03",
-    title: "Use",
+    icon: TrendingUp,
+    step: "03",
+    title: "Dynamic Trust Score",
     description:
-      "Pick up the equipment and enjoy your rental.",
-  },
-  {
-    number: "04",
-    title: "Return",
-    description:
-      "Return the equipment safely and leave a review.",
+      "An AI-driven metric based on historical reliability, care for gear, and community responsiveness.",
+    points: ["Peer Reviews", "Loyalty Rewards"],
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="py-20">
-      <div className="mx-auto max-w-6xl px-4">
-        <h2 className="mb-12 text-center text-4xl font-bold">
-          How It Works
-        </h2>
+    <section className="border-t border-neutral-100 bg-neutral-50/60 py-20">
+      <Container>
+        <div className="flex items-end justify-between">
+          <div>
+            <h2 className="font-headline text-3xl font-bold text-primary-900">
+              How it Works: Engineered Trust
+            </h2>
+            <p className="mt-3 max-w-xl text-neutral-600">
+              Our three-pillar security architecture ensures your equipment
+              and your capital are protected at every step of the circular
+              economy.
+            </p>
+          </div>
+          <span className="hidden items-center gap-1.5 text-xs font-medium text-tertiary-600 md:flex">
+            <span className="h-2 w-2 rounded-full bg-tertiary-500" /> System Status: Secure
+          </span>
+        </div>
 
-        <div className="grid gap-8 md:grid-cols-4">
-          {steps.map((step) => (
-            <div
-              key={step.number}
-              className="rounded-xl border p-8 text-center"
-            >
-              <div className="mb-5 text-5xl font-bold text-blue-600">
-                {step.number}
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {PILLARS.map((pillar) => (
+            <div key={pillar.step} className="card">
+              <div className="flex items-center justify-between">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-900">
+                  <pillar.icon className="h-5 w-5 text-tertiary-400" />
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-900 font-label text-xs font-bold text-white">
+                  {pillar.step}
+                </span>
               </div>
-
-              <h3 className="mb-3 text-xl font-semibold">
-                {step.title}
+              <h3 className="mt-5 font-headline text-base font-semibold text-primary-900">
+                {pillar.title}
               </h3>
-
-              <p className="text-gray-600">
-                {step.description}
+              <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+                {pillar.description}
               </p>
+              <ul className="mt-4 space-y-1.5 border-t border-neutral-100 pt-4">
+                {pillar.points.map((point) => (
+                  <li key={point} className="flex items-center gap-1.5 text-xs text-tertiary-700">
+                    <span className="h-1 w-1 rounded-full bg-tertiary-500" /> {point}
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

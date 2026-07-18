@@ -2,38 +2,39 @@
 
 import { Search } from "lucide-react";
 
+const CATEGORIES = [
+  "All Categories",
+  "Photography & Video",
+  "Drones",
+  "Power Tools",
+  "Camping Equipment",
+  "Musical Instruments",
+];
+
 export default function SearchBar() {
   return (
-    <section className="-mt-10 relative z-20">
-      <div className="mx-auto max-w-5xl rounded-2xl bg-white p-6 shadow-xl">
-        <div className="grid gap-4 md:grid-cols-4">
-          <input
-            type="text"
-            placeholder="Search equipment..."
-            className="rounded-lg border p-3 outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <input
-            type="text"
-            placeholder="Location"
-            className="rounded-lg border p-3 outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <select className="rounded-lg border p-3 outline-none focus:ring-2 focus:ring-blue-500">
-            <option>All Categories</option>
-            <option>Camera</option>
-            <option>Drone</option>
-            <option>Power Tools</option>
-            <option>Camping</option>
-            <option>Music</option>
-          </select>
-
-          <button className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 p-3 font-semibold text-white hover:bg-blue-700">
-            <Search size={20} />
-            Search
-          </button>
-        </div>
+    <div className="rounded-card border border-neutral-100 bg-white p-4 shadow-card">
+      <div className="grid gap-3 md:grid-cols-4">
+        <input
+          type="text"
+          placeholder="Search equipment..."
+          className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-secondary-500"
+        />
+        <input
+          type="text"
+          placeholder="Location"
+          className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-secondary-500"
+        />
+        <select className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-secondary-500">
+          {CATEGORIES.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+        <button className="btn-secondary">
+          <Search className="h-4 w-4" />
+          Search
+        </button>
       </div>
-    </section>
+    </div>
   );
 }

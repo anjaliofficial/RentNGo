@@ -6,25 +6,24 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Camera, Star } from "lucide-react";
 
-import authService from "@/services/auth.service";
-import { useAuthStore } from "@/store/auth.store";
+import { loginSchema, LoginSchema } from "../../lib/validators";
+import { apiClient } from "../../lib/api-client";
+import { useAuth } from "./AuthProvider";
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginSchema = z.infer<typeof loginSchema>;
+const SIDE_FEATURES = [
+  { icon: ShieldCheck, title: "Secure Payments", description: "Escrow-protected transactions with verified users." },
+  { icon: Camera, title: "Thousands of Listings", description: "Rent professional equipment anytime, anywhere." },
+  { icon: Star, title: "Trusted Community", description: "A live trust score keeps every exchange accountable." },
+];
 
 export default function LoginForm() {
   const router = useRouter();
-  const setAuth = useAuthStore((state) => state.setAuth);
-
+  const { refresh } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [mfaRequired, setMfaRequired] = useState(false);
 
   const {
     register,
@@ -35,10 +34,17 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginSchema) => {
     try {
       setLoading(true);
-      const res = await authService.login(data);
-      setAuth(res.data.data.user, res.data.data.accessToken, res.data.data.refreshToken);
-      toast.success("Welcome back!");
-      router.push("/");
+      const res = await apiClient.post("/api/auth/login", data);
+
+      if (res.data.mfaRequired) {
+        setMfaRequired(true);
+        toast("Enter your MFA code to continue", { icon: "🔐" });
+        return;
+      }
+
+      await refresh();
+      toast.success(res.data.message ?? "Welcome back!");
+      router.replace("/dashboard");
     } catch (err: any) {
       toast.error(err.response?.data?.message ?? "Login failed");
     } finally {
@@ -47,114 +53,129 @@ export default function LoginForm() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200">
-      <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-2 gap-12 px-6">
-        
-        {/* LEFT SIDE */}
-        <div className="hidden items-center justify-center lg:flex">
-          <div className="max-w-xl">
-            <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-              Secure Equipment Rental
-            </span>
-            <h1 className="mt-8 text-6xl font-black leading-tight text-slate-900">
-              Rent.<br />Share.<br />Explore.
-            </h1>
-            <p className="mt-8 text-lg leading-8 text-slate-600">
-              Join Nepal's trusted marketplace for renting cameras, drones, tools, camping gear and more.
-            </p>
-            <div className="mt-12 space-y-6">
-              {["Verified Owners", "Secure Payments", "Damage Protection"].map((item) => (
-                <div key={item} className="flex items-center gap-4">
-                  <ShieldCheck className="text-blue-600" size={28} />
-                  <p className="text-lg">{item}</p>
+    <section className="relative min-h-screen overflow-hidden bg-primary-900">
+      <div className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-secondary-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full bg-tertiary-500/20 blur-3xl" />
+
+      <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-16 px-6 lg:grid-cols-2">
+        {/* LEFT */}
+        <div className="hidden lg:block">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 font-label text-xs font-semibold uppercase tracking-wide text-tertiary-300">
+            <ShieldCheck className="h-4 w-4" />
+            Community-Verified Rentals
+          </div>
+
+          <h1 className="mt-8 font-headline text-6xl font-bold leading-[1.05] text-white">
+            Rent. Share.
+            <br />
+            Explore.
+          </h1>
+
+          <p className="mt-6 max-w-md text-base leading-relaxed text-primary-300">
+            Discover cameras, drones, camping gear, musical instruments, and
+            tools from verified, trust-scored owners.
+          </p>
+
+          <div className="mt-12 space-y-6">
+            {SIDE_FEATURES.map((f) => (
+              <div key={f.title} className="flex items-center gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                  <f.icon className="h-5 w-5 text-tertiary-400" />
+                </span>
+                <div>
+                  <h3 className="font-headline text-sm font-semibold text-white">{f.title}</h3>
+                  <p className="text-xs text-primary-300">{f.description}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="flex items-center justify-center">
-          <div className="w-full max-w-lg rounded-3xl border border-white/40 bg-white/90 p-12 shadow-2xl backdrop-blur-xl">
-            
+        {/* RIGHT CARD */}
+        <div className="flex justify-center py-16">
+          <div className="w-full max-w-md rounded-card border border-neutral-100 bg-white p-8 shadow-xl">
             <div className="mb-8 text-center">
-              <h2 className="text-4xl font-black text-slate-900">Welcome Back 👋</h2>
-              <p className="mt-3 text-gray-500">Login to continue your RentNGo journey.</p>
+              <h2 className="font-headline text-2xl font-bold text-primary-900">Welcome back</h2>
+              <p className="mt-2 text-sm text-neutral-500">Sign in to manage your rentals and trust score.</p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Email */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Email Address</label>
+                <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                  Email Address
+                </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                   <input
                     type="email"
+                    placeholder="you@example.com"
                     {...register("email")}
-                    placeholder="Enter your email"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 py-4 pl-12 pr-4 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-secondary-500"
                   />
                 </div>
-                {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email.message}</p>}
+                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
               </div>
 
-              {/* Password */}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                  Password
+                </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
                     {...register("password")}
-                    placeholder="Enter your password"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 py-4 pl-12 pr-12 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-secondary-500"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="mt-2 text-sm text-red-500">{errors.password.message}</p>}
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
+                )}
               </div>
 
-              {/* Options */}
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" /> Remember me
+              {mfaRequired && (
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    MFA Code
+                  </label>
+                  <input
+                    maxLength={6}
+                    placeholder="6-digit code"
+                    className="w-full rounded-lg border border-neutral-200 py-2.5 px-3 text-sm tracking-widest outline-none focus:border-secondary-500"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 text-xs text-neutral-500">
+                  <input type="checkbox" className="accent-secondary-500" />
+                  Remember me
                 </label>
-                <Link href="#" className="font-semibold text-blue-600 hover:underline">
+                <Link href="/forgot-password" className="text-xs font-semibold text-secondary-600 hover:text-secondary-700">
                   Forgot Password?
                 </Link>
               </div>
 
-              {/* Submit */}
-              <button
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-4 font-bold text-white transition duration-300 hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading ? "Logging In..." : "Login"}
-                {!loading && <ArrowRight size={20} />}
+              <button type="submit" disabled={loading} className="btn-primary w-full">
+                {loading ? "Signing In..." : "Sign In"}
+                {!loading && <ArrowRight className="h-4 w-4" />}
               </button>
             </form>
 
-            {/* Divider */}
-            <div className="my-8 flex items-center">
-              <div className="h-px flex-1 bg-gray-300" />
-              <span className="mx-4 text-sm text-gray-500">OR</span>
-              <div className="h-px flex-1 bg-gray-300" />
-            </div>
-
-            {/* Register Link */}
-            <p className="text-center text-gray-600">
-              Don't have an account?
-              <Link href="/register" className="ml-2 font-bold text-blue-600 hover:underline">
+            <p className="mt-8 text-center text-sm text-neutral-500">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="font-semibold text-secondary-600 hover:text-secondary-700">
                 Create Account
               </Link>
             </p>
-
           </div>
         </div>
       </div>

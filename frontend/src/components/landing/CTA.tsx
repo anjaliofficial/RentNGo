@@ -1,24 +1,29 @@
 import Link from "next/link";
+import Container from "../layout/Container";
 
 export default function CTA() {
   return (
-    <section className="bg-blue-600 py-20 text-white">
-      <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-4xl font-bold">
-          Ready to Rent Equipment?
+    <section className="bg-primary-900">
+      <Container className="py-20 text-center">
+        <h2 className="font-headline text-3xl font-bold text-white md:text-4xl">
+          Ready to join the secure circular economy?
         </h2>
-
-        <p className="mt-4 text-lg text-blue-100">
-          Join RentNGo today and start renting or earning from your equipment.
+        <p className="mx-auto mt-4 max-w-lg text-primary-300">
+          Start listing your equipment or discover professional gear in your
+          neighborhood, with zero risk and maximum trust.
         </p>
-
-        <Link
-          href="/register"
-          className="mt-8 inline-block rounded-lg bg-white px-8 py-3 font-semibold text-blue-600 transition hover:bg-gray-100"
-        >
-          Get Started
-        </Link>
-      </div>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link href="/register" className="btn-secondary">
+            Get Started Now
+          </Link>
+          <Link
+            href="/how-it-works"
+            className="btn-outline !border-white/20 !bg-transparent !text-white hover:!border-white"
+          >
+            Download Protocol Whitepaper
+          </Link>
+        </div>
+      </Container>
     </section>
   );
 }
