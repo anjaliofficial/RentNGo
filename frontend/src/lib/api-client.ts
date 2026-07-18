@@ -2,27 +2,93 @@ import axios from "axios";
 import { getAccessTokenClient } from "./cookie-client";
 
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-apiClient.interceptors.request.use((requestConfig) => {
+// Attach access token before each request
+apiClient.interceptors.request.use((config) => {
   const token = getAccessTokenClient();
   if (token) {
-    requestConfig.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return requestConfig;
+  return config;
 });
+
+// Handle expired tokens
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Access token expired - caller can trigger /auth/refresh and retry.
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh")
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          throw new Error("No refresh token is available");
+        }
+        const { data } = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1"}/auth/refresh`,
+          { refreshToken },
+          { withCredentials: true }
+        );
+
+        const newAccessToken = data.accessToken;
+        const newRefreshToken = data.refreshToken;
+
+        localStorage.setItem("accessToken", newAccessToken);
+        localStorage.setItem("refreshToken", newRefreshToken);
+
+        apiClient.defaults.headers.Authorization = `Bearer ${newAccessToken}`;
+        processQueue(null, newAccessToken);
+
+        return apiClient(originalRequest);
+      } catch (err) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        processQueue(err, null);
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(error);
   }
 );

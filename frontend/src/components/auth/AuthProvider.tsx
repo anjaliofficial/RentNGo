@@ -8,21 +8,36 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { apiClient } from "../../lib/api-client";
+import AuthService from "@/services/auth.service";
 
 export interface AuthUser {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   role: "CUSTOMER" | "OWNER" | "MODERATOR" | "ADMIN";
   trustScore: number;
-  identityStatus: string;
+  avatar?: string;
+  phone?: string;
+  address?: string;
+  bio?: string;
+  emailVerified?: boolean;
+  mfaEnabled?: boolean;
+  verificationStatus?: string;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   refresh: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    address?: string;
+    bio?: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -34,18 +49,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const { data } = await apiClient.get("/api/users/me");
-      setUser(data.data);
+      const { data } = await AuthService.me();
+      setUser(data.user);
     } catch {
+      // apiClient refreshes an expired access token once and retries /me.
       setUser(null);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const login = async (email: string, password: string) => {
+    const res = await AuthService.login({ email, password });
+    localStorage.setItem("accessToken", res.data.accessToken);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
+    setUser(res.data.user);
+  };
+
+  const register = async (data: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    address?: string;
+    bio?: string;
+  }) => {
+    const res = await AuthService.register(data);
+    localStorage.setItem("accessToken", res.data.accessToken);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
+    setUser(res.data.user);
+  };
+
   const logout = useCallback(async () => {
-    await apiClient.post("/api/auth/logout").catch(() => undefined);
+    await AuthService.logout().catch(() => undefined);
     setUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   }, []);
 
   useEffect(() => {
@@ -53,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, refresh, logout }}>
+    <AuthContext.Provider value={{ user, loading, refresh, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

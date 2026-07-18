@@ -1,55 +1,98 @@
-import { RegisterDto } from "../dto/auth.dto";
+import { RegisterDto, LoginDto } from "../dto/auth.dto";
 import ApiError from "../error/ApiError";
 import authRepository from "../repositories/auth.repository";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
-import { hashPassword } from "../utils/password";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt";
+import { hashPassword, comparePassword } from "../utils/password";
 import { AuthResponse } from "../types/auth.types";
 import { IUserResponse } from "../types/user.types";
-
-import { LoginDto } from "../dto/auth.dto";
-import { comparePassword } from "../utils/password";
+import User from "../models/user.model";
 
 class AuthService {
-  getCurrentUser(userId: string) {
-    throw new Error("Method not implemented.");
+  /**
+   * Get Current User
+   */
+  async getCurrentUser(userId: string): Promise<IUserResponse> {
+    const user = await User.findById(userId).select("-password -refreshToken");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    return {
+      _id: user._id.toString(),
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar || "",
+      trustScore: user.trustScore,
+      emailVerified: user.emailVerified,
+      mfaEnabled: user.mfaEnabled,
+      verificationStatus: user.verificationStatus,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      phone: user.phone || "",
+      address: user.address || "",
+      bio: user.bio || "",
+    };
   }
-  refreshToken(refreshToken: any) {
-    throw new Error("Method not implemented.");
+
+  /**
+   * Refresh Token
+   */
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    let payload;
+    try {
+      payload = verifyRefreshToken(refreshToken);
+    } catch {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    const user = await authRepository.findById(payload.userId);
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    const newAccessToken = generateAccessToken(user._id.toString());
+    const newRefreshToken = generateRefreshToken(user._id.toString());
+
+    await authRepository.saveRefreshToken(user._id.toString(), newRefreshToken);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
   }
+
   /**
    * Register User
    */
   async register(data: RegisterDto): Promise<AuthResponse> {
-    const { fullName, email, password } = data;
+    const { fullName, email, password, phone, address, bio } = data;
 
-    // Check if user already exists
     const existingUser = await authRepository.findByEmail(email);
-
     if (existingUser) {
       throw new ApiError(409, "Email already exists");
     }
 
-    // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user
     const user = await authRepository.createUser({
       fullName,
       email,
       password: hashedPassword,
+      phone,
+      address,
+      bio,
     });
 
-    // Generate tokens
     const accessToken = generateAccessToken(user._id.toString());
     const refreshToken = generateRefreshToken(user._id.toString());
 
-    // Save refresh token
-    await authRepository.saveRefreshToken(
-      user._id.toString(),
-      refreshToken
-    );
+    await authRepository.saveRefreshToken(user._id.toString(), refreshToken);
 
-    // User response (hide sensitive data)
     const userResponse: IUserResponse = {
       _id: user._id.toString(),
       fullName: user.fullName,
@@ -62,70 +105,55 @@ class AuthService {
       verificationStatus: user.verificationStatus,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      phone: user.phone || "",
+      address: user.address || "",
+      bio: user.bio || "",
     };
 
-    return {
-      user: userResponse,
-      accessToken,
-      refreshToken,
+    return { user: userResponse, accessToken, refreshToken };
+  }
+
+  /**
+   * Login User
+   */
+  async login(data: LoginDto): Promise<AuthResponse> {
+    const { email, password } = data;
+
+    const user = await authRepository.findByEmail(email);
+    if (!user) {
+      throw new ApiError(401, "Invalid email or password");
+    }
+
+    const passwordMatched = await comparePassword(password, user.password);
+    if (!passwordMatched) {
+      throw new ApiError(401, "Invalid email or password");
+    }
+
+    const userId = String(user._id);
+    const accessToken = generateAccessToken(userId);
+    const refreshToken = generateRefreshToken(userId);
+
+    await authRepository.saveRefreshToken(userId, refreshToken);
+
+    const userResponse: IUserResponse = {
+      _id: user._id.toString(),
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar || "",
+      trustScore: user.trustScore,
+      emailVerified: user.emailVerified,
+      mfaEnabled: user.mfaEnabled,
+      verificationStatus: user.verificationStatus,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      phone: user.phone || "",
+      address: user.address || "",
+      bio: user.bio || "",
     };
+
+    return { user: userResponse, accessToken, refreshToken };
   }
-
-/**
- * Login User
- */
-async login(data: LoginDto) {
-  const { email, password } = data;
-
-  // Find user
-  const user = await authRepository.findByEmail(email);
-
-  if (!user) {
-    throw new ApiError(401, "Invalid email or password");
-  }
-
-  // Compare password
-  const passwordMatched = await comparePassword(
-    password,
-    user.password
-  );
-
-  if (!passwordMatched) {
-    throw new ApiError(401, "Invalid email or password");
-  }
-
-  const userId = String(user._id);
-
-  // Generate Tokens
-  const accessToken = generateAccessToken(userId);
-
-  const refreshToken = generateRefreshToken(userId);
-
-  // Save Refresh Token
-  await authRepository.saveRefreshToken(
-    userId,
-    refreshToken
-  );
-
-  const userResponse: IUserResponse = {
-    _id: userId,
-    fullName: user.fullName,
-    email: user.email,
-    role: user.role,
-    avatar: user.avatar || "",
-    trustScore: user.trustScore,
-    emailVerified: user.emailVerified,
-    mfaEnabled: user.mfaEnabled,
-    verificationStatus: user.verificationStatus,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
-
-  return {
-    user: userResponse,
-    accessToken,
-    refreshToken,
-  };
 }
-}
+
 export default new AuthService();

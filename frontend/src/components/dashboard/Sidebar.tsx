@@ -3,9 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { ShieldCheck } from "lucide-react";
-import { DASHBOARD_NAV, DASHBOARD_FOOTER_NAV } from "../../constants/navigation";
+import { CalendarDays, Heart, HelpCircle, LayoutDashboard, Settings, ShieldCheck } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+
+const DASHBOARD_NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/bookings", label: "My rentals", icon: CalendarDays },
+  { href: "/wishlist", label: "Wishlist", icon: Heart },
+];
+
+const DASHBOARD_FOOTER_NAV = [
+  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/help", label: "Help", icon: HelpCircle },
+];
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -22,7 +32,7 @@ export default function Sidebar() {
 
       {user && (
         <div className="mx-4 mb-4 rounded-lg bg-tertiary-50 px-3 py-2.5">
-          <p className="text-xs font-semibold text-primary-900">{user.name}</p>
+          <p className="text-xs font-semibold text-primary-900">{user.fullName}</p>
           <p className="text-xs text-tertiary-700">Score: {user.trustScore}/100</p>
         </div>
       )}

@@ -9,8 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Camera, Star } from "lucide-react";
 
 import { loginSchema, LoginSchema } from "../../lib/validators";
-import { apiClient } from "../../lib/api-client";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../auth/AuthProvider";
 
 const SIDE_FEATURES = [
   { icon: ShieldCheck, title: "Secure Payments", description: "Escrow-protected transactions with verified users." },
@@ -20,10 +19,9 @@ const SIDE_FEATURES = [
 
 export default function LoginForm() {
   const router = useRouter();
-  const { refresh } = useAuth();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [mfaRequired, setMfaRequired] = useState(false);
 
   const {
     register,
@@ -34,17 +32,10 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginSchema) => {
     try {
       setLoading(true);
-      const res = await apiClient.post("/api/auth/login", data);
-
-      if (res.data.mfaRequired) {
-        setMfaRequired(true);
-        toast("Enter your MFA code to continue", { icon: "🔐" });
-        return;
-      }
-
-      await refresh();
-      toast.success(res.data.message ?? "Welcome back!");
-      router.replace("/dashboard");
+      await login(data.email, data.password);
+      toast.success("Welcome back!");
+      // Redirects the authenticated session straight into the dashboard layout
+      router.push("/dashboard");
     } catch (err: any) {
       toast.error(err.response?.data?.message ?? "Login failed");
     } finally {
@@ -140,19 +131,6 @@ export default function LoginForm() {
                   <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
                 )}
               </div>
-
-              {mfaRequired && (
-                <div>
-                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
-                    MFA Code
-                  </label>
-                  <input
-                    maxLength={6}
-                    placeholder="6-digit code"
-                    className="w-full rounded-lg border border-neutral-200 py-2.5 px-3 text-sm tracking-widest outline-none focus:border-secondary-500"
-                  />
-                </div>
-              )}
 
               <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center gap-2 text-xs text-neutral-500">

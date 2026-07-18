@@ -8,6 +8,9 @@ export const registerSchema = z.object({
     .min(8, "At least 8 characters")
     .regex(/[A-Z]/, "Add an uppercase letter")
     .regex(/[0-9]/, "Add a number"),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  bio: z.string().optional(),
 });
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

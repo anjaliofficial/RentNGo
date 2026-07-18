@@ -34,7 +34,7 @@ export default function Topbar({ crumb = "Dashboard" }: { crumb?: string }) {
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-secondary-500" />
         </button>
-        {user && <Avatar name={user.name} size={32} />}
+        {user && <Avatar name={user.fullName} size={32} />}
       </div>
     </header>
   );

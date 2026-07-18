@@ -66,6 +66,6 @@ export const verifyRefreshToken = (
 ) => {
   return jwt.verify(
     token,
-    process.env.JWT_REFRESH_SECRET!
+    REFRESH_TOKEN_SECRET
   ) as JwtPayload;
 };

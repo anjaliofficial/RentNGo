@@ -1,7 +1,6 @@
 export function getAccessTokenClient(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )accessToken=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("accessToken");
 }
 
 export function clearClientCookies(): void {

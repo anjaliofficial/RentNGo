@@ -6,7 +6,18 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  Phone,
+  Home,
+  FileText,
+} from "lucide-react";
 
 import { registerSchema, RegisterSchema } from "../../lib/validators";
 import { apiClient } from "../../lib/api-client";
@@ -27,10 +38,13 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       setLoading(true);
-      const res = await apiClient.post("/api/auth/register", {
-        name: data.fullName,
+      const res = await apiClient.post("/auth/register", {
+        fullName: data.fullName,
         email: data.email,
         password: data.password,
+        phone: data.phone || "",
+        address: data.address || "",
+        bio: data.bio || "",
       });
       toast.success(res.data.message ?? "Registration successful!");
       router.push("/login?registered=1");
@@ -93,6 +107,7 @@ export default function RegisterForm() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+                {/* Full Name */}
                 <div>
                   <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
                     Full Name
@@ -110,6 +125,7 @@ export default function RegisterForm() {
                   )}
                 </div>
 
+                {/* Email */}
                 <div>
                   <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
                     Email
@@ -128,6 +144,7 @@ export default function RegisterForm() {
                   )}
                 </div>
 
+                {/* Password */}
                 <div>
                   <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
                     Password
@@ -153,13 +170,64 @@ export default function RegisterForm() {
                   )}
                 </div>
 
+                {/* Phone (optional) */}
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    Phone (optional)
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      {...register("phone")}
+                      placeholder="+977-9800000000"
+                      className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-secondary-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Address (optional) */}
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    Address (optional)
+                  </label>
+                  <div className="relative">
+                    <Home className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      {...register("address")}
+                      placeholder="Kathmandu, Nepal"
+                      className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-secondary-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Bio (optional) */}
+                <div>
+                  <label className="mb-1.5 block font-label text-xs font-semibold text-primary-700">
+                    Bio (optional)
+                  </label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
+                    <textarea
+                      {...register("bio")}
+                      placeholder="Tell us a little about yourself..."
+                      className="w-full rounded-lg border border-neutral-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-secondary-500"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                {/* Terms & Conditions */}
                 <label className="flex items-start gap-2.5 pt-1 text-xs text-neutral-500">
                   <input type="checkbox" required className="mt-0.5 accent-secondary-500" />
-                  I agree to the{" "}
-                  <span className="font-semibold text-secondary-600">Terms & Conditions</span>{" "}
-                  and <span className="font-semibold text-secondary-600">Privacy Policy</span>.
+                  <span>
+                    I agree to the{" "}
+                    <span className="font-semibold text-secondary-600">Terms & Conditions</span>{" "}
+                    and{" "}
+                    <span className="font-semibold text-secondary-600">Privacy Policy</span>.
+                  </span>
                 </label>
 
+                {/* Submit Button */}
                 <button type="submit" disabled={loading} className="btn-primary w-full">
                   {loading ? "Creating Account..." : "Create Account"}
                   {!loading && <ArrowRight className="h-4 w-4" />}
