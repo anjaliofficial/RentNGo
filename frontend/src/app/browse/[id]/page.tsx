@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { MapPin, Star, CalendarX2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -11,8 +11,11 @@ import Footer from "@/components/layout/Footer";
 import Container from "@/components/layout/Container";
 import { Card, Badge, Avatar } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import equipmentService from "@/services/equipment.service";
+import bookingService from "@/services/booking.service";
 import { resolveMediaUrl } from "@/utils/format";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   BookedDateRange,
   EQUIPMENT_CATEGORY_LABELS,
@@ -20,12 +23,19 @@ import {
   Equipment,
 } from "@/types/equipment.types";
 
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
 export default function EquipmentDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
   const [item, setItem] = useState<Equipment | null>(null);
   const [bookedRanges, setBookedRanges] = useState<BookedDateRange[]>([]);
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -63,6 +73,33 @@ export default function EquipmentDetailPage() {
   }
 
   const images = item.images.map((img) => resolveMediaUrl(img)).filter(Boolean) as string[];
+
+  const isOwner = user?.id === item.owner._id;
+
+  const totalDays =
+    startDate && endDate && new Date(endDate) > new Date(startDate)
+      ? Math.ceil(
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+        )
+      : 0;
+  const totalAmount = totalDays > 0 ? totalDays * item.pricePerDay + item.securityDeposit : 0;
+
+  const requestBooking = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      await bookingService.create({ equipmentId: item._id, startDate, endDate });
+      toast.success("Booking request sent!");
+      router.push("/bookings");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not request this booking");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -163,13 +200,52 @@ export default function EquipmentDetailPage() {
                 </Badge>
               </div>
 
-              <Button
-                className="mt-4 w-full"
-                disabled={!item.available}
-                onClick={() => toast("Booking requests are coming in the next sprint.")}
-              >
-                Request to Book
-              </Button>
+              {isOwner ? (
+                <p className="mt-4 rounded-lg bg-neutral-50 px-3 py-2.5 text-xs text-neutral-500">
+                  This is your own listing — you can&apos;t book it.
+                </p>
+              ) : item.available ? (
+                <div className="mt-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      label="Start date"
+                      type="date"
+                      min={todayIso()}
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                    <Input
+                      label="End date"
+                      type="date"
+                      min={startDate || todayIso()}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+
+                  {totalDays > 0 && (
+                    <div className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                      <span>
+                        {totalDays} day{totalDays > 1 ? "s" : ""} · ${item.pricePerDay}/day + $
+                        {item.securityDeposit} deposit
+                      </span>
+                      <span className="font-semibold text-primary-900">${totalAmount}</span>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    disabled={submitting || totalDays === 0}
+                    onClick={requestBooking}
+                  >
+                    {submitting ? "Sending..." : "Request to Book"}
+                  </Button>
+                </div>
+              ) : (
+                <Button className="mt-4 w-full" disabled>
+                  Unavailable
+                </Button>
+              )}
             </Card>
 
             <Card>
