@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import Navbar from "@/components/layout/Navbar";
@@ -18,13 +19,22 @@ import {
 } from "@/types/equipment.types";
 
 export default function BrowsePage() {
+  return (
+    <Suspense fallback={null}>
+      <BrowsePageContent />
+    </Suspense>
+  );
+}
+
+function BrowsePageContent() {
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<Equipment[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [categories, setCategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");

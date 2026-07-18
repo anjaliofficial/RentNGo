@@ -1,3 +1,5 @@
+import { FaFacebookF, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
+
 export default function DashboardFooter() {
   return (
     <footer className="border-t border-neutral-100 bg-white px-6 py-8 text-sm text-neutral-500">
@@ -32,9 +34,27 @@ export default function DashboardFooter() {
         <div>
           <h4 className="font-semibold text-primary-900 mb-2">Connect</h4>
           <div className="flex gap-3">
-            <a href="#" aria-label="Twitter" className="hover:text-secondary-600">🐦</a>
-            <a href="#" aria-label="Facebook" className="hover:text-secondary-600">📘</a>
-            <a href="#" aria-label="LinkedIn" className="hover:text-secondary-600">💼</a>
+            <a
+              href="#"
+              aria-label="Twitter"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:bg-secondary-50 hover:text-secondary-600"
+            >
+              <FaXTwitter className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href="#"
+              aria-label="Facebook"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:bg-secondary-50 hover:text-secondary-600"
+            >
+              <FaFacebookF className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href="#"
+              aria-label="LinkedIn"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:bg-secondary-50 hover:text-secondary-600"
+            >
+              <FaLinkedinIn className="h-3.5 w-3.5" />
+            </a>
           </div>
         </div>
       </div>
