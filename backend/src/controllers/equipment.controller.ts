@@ -172,6 +172,31 @@ class EquipmentController {
     }
   }
   /**
+   * GET /api/v1/equipment/:id/availability
+   */
+  async getAvailability(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id ?? "";
+
+      const bookedRanges = await equipmentService.getAvailability(id);
+
+      successResponse(
+        res,
+        "Availability fetched successfully.",
+        bookedRanges
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
  * Search Equipment
  */
 async searchEquipment(

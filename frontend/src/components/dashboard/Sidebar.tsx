@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { CalendarDays, Heart, HelpCircle, LayoutDashboard, Settings, ShieldCheck } from "lucide-react";
+import { CalendarDays, Heart, HelpCircle, LayoutDashboard, PlusSquare, Settings, ShieldCheck } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 
 const DASHBOARD_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/bookings", label: "My rentals", icon: CalendarDays },
+  { href: "/dashboard/list-equipment", label: "List Equipment", icon: PlusSquare },
   { href: "/wishlist", label: "Wishlist", icon: Heart },
 ];
 

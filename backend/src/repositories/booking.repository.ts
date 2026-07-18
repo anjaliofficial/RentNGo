@@ -136,6 +136,20 @@ class BookingRepository {
 
     return !!booking;
   }
+
+  /**
+   * Find Active Booked Date Ranges For Equipment
+   */
+  async findActiveDateRanges(
+    equipmentId: string
+  ): Promise<Pick<IBooking, "startDate" | "endDate">[]> {
+    return Booking.find({
+      equipment: equipmentId,
+      bookingStatus: {
+        $in: [...activeBookingStatuses] as any,
+      },
+    }).select("startDate endDate -_id");
+  }
 }
 
 export default new BookingRepository();

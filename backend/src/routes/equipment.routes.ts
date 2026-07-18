@@ -7,8 +7,13 @@ const router = Router();
 
 /**
  * Public Routes
- */// Public
+ */
+
+// Public
 router.get("/", equipmentController.getAllEquipment);
+
+// Public — must be registered before "/:id" so "search" isn't swallowed as an id
+router.get("/search", equipmentController.searchEquipment);
 
 // Protected
 router.get(
@@ -20,6 +25,12 @@ router.get(
 
 // Public
 router.get("/:id", equipmentController.getEquipmentById);
+
+// Public
+router.get(
+  "/:id/availability",
+  equipmentController.getAvailability
+);
 
 // Protected
 router.post(
@@ -42,11 +53,5 @@ router.delete(
   authorize("owner", "admin"),
   equipmentController.deleteEquipment
 );
-
-router.get(
-  "/",
-  equipmentController.getAllEquipment
-);
-// Admin Routes
 
 export default router;

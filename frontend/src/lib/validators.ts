@@ -21,3 +21,21 @@ export const loginSchema = z.object({
 });
 
 export type LoginSchema = z.infer<typeof loginSchema>;
+
+export const equipmentDetailsSchema = z.object({
+  title: z.string().min(3, "Give your listing a clear title"),
+  category: z.string().min(1, "Select a category"),
+  brand: z.string().optional(),
+  condition: z.string().min(1, "Select a condition"),
+  description: z.string().min(20, "Describe the item in at least 20 characters"),
+});
+
+export type EquipmentDetailsSchema = z.infer<typeof equipmentDetailsSchema>;
+
+export const equipmentPricingSchema = z.object({
+  pricePerDay: z.number().min(1, "Enter a daily rate"),
+  securityDeposit: z.number().min(0, "Enter a deposit amount (0 if none)"),
+  location: z.string().min(2, "Enter a pickup location"),
+});
+
+export type EquipmentPricingSchema = z.infer<typeof equipmentPricingSchema>;

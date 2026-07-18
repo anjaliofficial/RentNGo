@@ -7,6 +7,7 @@ export interface EquipmentCardData {
   category: string;
   dailyRate: number;
   imageColor: string;
+  image?: string;
   ownerTrustScore: number;
   location?: string;
   rating?: number;
@@ -18,14 +19,25 @@ export default function EquipmentCard({ item }: { item: EquipmentCardData }) {
       href={`/browse/${item.id}`}
       className="card group flex flex-col overflow-hidden !p-0 transition-shadow hover:shadow-lg"
     >
-      <div
-        className="flex h-40 items-center justify-center"
-        style={{ backgroundColor: item.imageColor }}
-      >
-        <span className="font-label text-xs font-medium uppercase tracking-wide text-white/80">
-          {item.category}
-        </span>
-      </div>
+      {item.image ? (
+        <div className="h-40 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.image}
+            alt={item.title}
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          />
+        </div>
+      ) : (
+        <div
+          className="flex h-40 items-center justify-center"
+          style={{ backgroundColor: item.imageColor }}
+        >
+          <span className="font-label text-xs font-medium uppercase tracking-wide text-white/80">
+            {item.category}
+          </span>
+        </div>
+      )}
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-headline text-sm font-semibold leading-snug text-primary-900">

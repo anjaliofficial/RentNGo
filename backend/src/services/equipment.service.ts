@@ -1,4 +1,5 @@
 import equipmentRepository from "../repositories/equipment.repository";
+import bookingRepository from "../repositories/booking.repository";
 
 import { EquipmentSearchDto } from "../dto/equipment-search.dto";
 
@@ -77,6 +78,19 @@ class EquipmentService {
     }
 
     return equipment;
+  }
+
+  /**
+   * Get Booked Date Ranges (availability)
+   */
+  async getAvailability(id: string) {
+    const equipment = await equipmentRepository.findRawById(id);
+
+    if (!equipment) {
+      throw new ApiError(404, "Equipment not found.");
+    }
+
+    return bookingRepository.findActiveDateRanges(id);
   }
 
   /**

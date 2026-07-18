@@ -1,25 +1,29 @@
 "use client";
 
-import Sidebar from "../../components/dashboard/Sidebar";
-import Topbar from "../../components/dashboard/Topbar";
-import DashboardFooter from "../../components/dashboard/DashboardFooter";
+import DashboardLayout from "../../components/dashboard/DashboardLayout";
 
 export default function BookingsPage() {
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      <Sidebar />
-      <div className="flex flex-1 flex-col">
-        <Topbar crumb="My Rentals" />
-        <main className="flex-1 p-8 space-y-6">
-          <h1 className="text-2xl font-bold text-primary-900">My Rentals</h1>
-          <p className="text-neutral-600">Here you’ll see all your active and past bookings.</p>
-          {/* TODO: Replace with dynamic rentals list */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <p className="text-sm text-neutral-500">No rentals yet. Start booking equipment today!</p>
-          </div>
-        </main>
-        <DashboardFooter />
+    <DashboardLayout crumb="My Rentals">
+      <h1 className="text-2xl font-bold text-primary-900">My Rentals</h1>
+      <p className="text-neutral-600">Track your active and past bookings.</p>
+
+      <div className="rounded-lg bg-white p-6 shadow space-y-4">
+        <h2 className="text-lg font-semibold text-primary-900">Active Rentals</h2>
+        <div>
+          <p className="font-semibold">DJI Phantom 4 Pro</p>
+          <p>Status: In Possession — Return by Tuesday</p>
+        </div>
+        <div>
+          <p className="font-semibold">Canon EOS R5</p>
+          <p>Status: Pickup Scheduled — Tomorrow 9:00 AM</p>
+        </div>
       </div>
-    </div>
+
+      <div className="rounded-lg bg-white p-6 shadow">
+        <h2 className="text-lg font-semibold text-primary-900">Past Rentals</h2>
+        <p className="text-sm text-neutral-500">You have completed 12 rentals successfully.</p>
+      </div>
+    </DashboardLayout>
   );
 }

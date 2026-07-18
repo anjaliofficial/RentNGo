@@ -1,25 +1,26 @@
 "use client";
 
-import Sidebar from "../../components/dashboard/Sidebar";
-import Topbar from "../../components/dashboard/Topbar";
-import DashboardFooter from "../../components/dashboard/DashboardFooter";
+import DashboardLayout from "../../components/dashboard/DashboardLayout";
 
 export default function HelpPage() {
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      <Sidebar />
-      <div className="flex flex-1 flex-col">
-        <Topbar crumb="Help" />
-        <main className="flex-1 p-8 space-y-6">
-          <h1 className="text-2xl font-bold text-primary-900">Help Center</h1>
-          <p className="text-neutral-600">Find answers to common questions or contact support.</p>
-          {/* TODO: Add FAQ or support links */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <p className="text-sm text-neutral-500">Support resources will be available here.</p>
-          </div>
-        </main>
-        <DashboardFooter />
+    <DashboardLayout crumb="Help">
+      <h1 className="text-2xl font-bold text-primary-900">Help Center</h1>
+      <p className="text-neutral-600">Find answers to common questions or contact support.</p>
+
+      <div className="rounded-lg bg-white p-6 shadow space-y-4">
+        <h2 className="text-lg font-semibold text-primary-900">Frequently Asked Questions</h2>
+        <ul className="space-y-2 text-sm text-neutral-700">
+          <li>❓ How do I verify my ID?</li>
+          <li>❓ How do I list equipment for rent?</li>
+          <li>❓ What happens if a rental is disputed?</li>
+        </ul>
       </div>
-    </div>
+
+      <div className="rounded-lg bg-white p-6 shadow">
+        <h2 className="text-lg font-semibold text-primary-900">Contact Support</h2>
+        <p className="text-sm text-neutral-600">Email us at support@rentngo.com or call +1-800-555-1234.</p>
+      </div>
+    </DashboardLayout>
   );
 }
