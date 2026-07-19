@@ -47,7 +47,9 @@ export default function ConversationPage() {
 
     const onNewMessage = (payload: { conversationId: string; message: Message }) => {
       if (payload.conversationId !== conversationId) return;
-      setMessages((prev) => [...prev, payload.message]);
+      setMessages((prev) =>
+        prev.some((m) => m._id === payload.message._id) ? prev : [...prev, payload.message]
+      );
     };
 
     socket.on("message:new", onNewMessage);
@@ -71,7 +73,9 @@ export default function ConversationPage() {
       setSending(true);
       setText("");
       const { data } = await chatService.sendMessage(conversationId, trimmed);
-      setMessages((prev) => [...prev, data.data]);
+      setMessages((prev) =>
+        prev.some((m) => m._id === data.data._id) ? prev : [...prev, data.data]
+      );
     } catch (err: any) {
       toast.error(err.response?.data?.message ?? "Could not send message");
     } finally {

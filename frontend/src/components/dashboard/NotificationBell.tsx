@@ -38,7 +38,11 @@ export default function NotificationBell() {
     const socket = getSocket(user.id);
 
     const onNotification = (notification: AppNotification) => {
-      setNotifications((prev) => [notification, ...prev].slice(0, 20));
+      setNotifications((prev) =>
+        prev.some((n) => n._id === notification._id)
+          ? prev
+          : [notification, ...prev].slice(0, 20)
+      );
       setUnreadCount((prev) => prev + 1);
       toast(notification.title, { icon: "🔔" });
     };

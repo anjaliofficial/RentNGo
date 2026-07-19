@@ -21,7 +21,7 @@ class ConversationRepository {
   ): Promise<IConversation | null> {
     return Conversation.findOne({
       participants: { $all: [userAId, userBId], $size: 2 },
-      equipment: equipmentId ?? { $exists: false },
+      ...(equipmentId ? { equipment: equipmentId } : { equipment: { $exists: false } }),
     });
   }
 

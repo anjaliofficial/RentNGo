@@ -85,6 +85,10 @@ export default function EquipmentDetailPage() {
       .getForUser(item.owner._id)
       .then(({ data }) => setReviews(data.data))
       .catch(() => undefined);
+    feedbackService
+      .getForEquipment(item._id)
+      .then(({ data }) => setFeedbackList(data.data))
+      .catch(() => undefined);
     equipmentService
       .search({ category: item.category, limit: 5 })
       .then(({ data }) => setSimilarItems(data.data.data.filter((e: Equipment) => e._id !== item._id)))
@@ -141,6 +145,46 @@ export default function EquipmentDetailPage() {
       toast.error(err.response?.data?.message ?? "Could not start conversation");
     } finally {
       setContacting(false);
+    }
+  };
+
+  const myFeedback = feedbackList.find((f) => f.user._id === user?.id);
+
+  const submitFeedback = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!feedbackComment.trim()) {
+      toast.error("Add a comment before submitting");
+      return;
+    }
+    try {
+      setSubmittingFeedback(true);
+      const { data } = await feedbackService.add(item._id, {
+        rating: feedbackRating,
+        comment: feedbackComment.trim(),
+      });
+      setFeedbackList((prev) => {
+        const rest = prev.filter((f) => f._id !== data.data._id);
+        return [{ ...data.data, user: myFeedback?.user ?? { _id: user.id, fullName: user.fullName, avatar: user.avatar } }, ...rest];
+      });
+      setFeedbackComment("");
+      toast.success(myFeedback ? "Feedback updated" : "Feedback submitted");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not submit feedback");
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  const deleteFeedback = async (feedbackId: string) => {
+    try {
+      await feedbackService.remove(item._id, feedbackId);
+      setFeedbackList((prev) => prev.filter((f) => f._id !== feedbackId));
+      toast.success("Feedback removed");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not remove feedback");
     }
   };
 
@@ -359,7 +403,9 @@ export default function EquipmentDetailPage() {
 
             <Card>
               <div className="flex items-center justify-between">
-                <h2 className="font-headline text-sm font-semibold text-primary-900">Reviews</h2>
+                <h2 className="font-headline text-sm font-semibold text-primary-900">
+                  Owner Reviews
+                </h2>
                 {reviews.length > 0 && (
                   <span className="flex items-center gap-1 text-sm font-medium text-neutral-600">
                     <Star className="h-4 w-4 fill-secondary-500 text-secondary-500" />
@@ -390,6 +436,105 @@ export default function EquipmentDetailPage() {
                         </span>
                       </div>
                       <p className="mt-1.5 text-xs text-neutral-600">{review.comment}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+
+            <Card>
+              <div className="flex items-center justify-between">
+                <h2 className="font-headline text-sm font-semibold text-primary-900">
+                  Listing Feedback
+                </h2>
+                {item.totalReviews > 0 && (
+                  <span className="flex items-center gap-1 text-sm font-medium text-neutral-600">
+                    <Star className="h-4 w-4 fill-secondary-500 text-secondary-500" />
+                    {item.averageRating.toFixed(1)}
+                    <span className="text-neutral-400">({item.totalReviews})</span>
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-neutral-500">
+                Any member of the community can rate and comment on this listing.
+              </p>
+
+              {!isOwner && (
+                <div className="mt-4 space-y-2 rounded-lg bg-neutral-50 p-3">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setFeedbackRating(n)}
+                        aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
+                      >
+                        <Star
+                          className={`h-5 w-5 ${
+                            n <= feedbackRating
+                              ? "fill-secondary-500 text-secondary-500"
+                              : "text-neutral-300"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    rows={2}
+                    placeholder={
+                      myFeedback ? "Update your feedback..." : "Share your thoughts on this listing..."
+                    }
+                    value={feedbackComment}
+                    onChange={(e) => setFeedbackComment(e.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-secondary-500 focus:outline-none"
+                  />
+                  <Button size="sm" disabled={submittingFeedback} onClick={submitFeedback}>
+                    {submittingFeedback
+                      ? "Submitting..."
+                      : myFeedback
+                      ? "Update Feedback"
+                      : "Submit Feedback"}
+                  </Button>
+                </div>
+              )}
+
+              {feedbackList.length === 0 ? (
+                <p className="mt-4 text-sm text-neutral-500">
+                  No feedback yet — be the first to share your thoughts.
+                </p>
+              ) : (
+                <ul className="mt-4 space-y-4">
+                  {feedbackList.map((feedback) => (
+                    <li
+                      key={feedback._id}
+                      className="border-t border-neutral-100 pt-3 first:border-0 first:pt-0"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Avatar
+                            name={feedback.user.fullName}
+                            src={resolveMediaUrl(feedback.user.avatar)}
+                            size={28}
+                          />
+                          <span className="text-sm font-medium text-primary-900">
+                            {feedback.user.fullName}
+                          </span>
+                          <span className="flex items-center gap-0.5 text-xs text-neutral-500">
+                            <Star className="h-3 w-3 fill-secondary-500 text-secondary-500" />
+                            {feedback.rating}
+                          </span>
+                        </div>
+                        {feedback.user._id === user?.id && (
+                          <button
+                            aria-label="Delete feedback"
+                            onClick={() => deleteFeedback(feedback._id)}
+                            className="text-neutral-400 hover:text-red-500"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-1.5 text-xs text-neutral-600">{feedback.comment}</p>
                     </li>
                   ))}
                 </ul>
