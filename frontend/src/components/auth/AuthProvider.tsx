@@ -9,6 +9,7 @@ import {
   ReactNode,
 } from "react";
 import AuthService from "@/services/auth.service";
+import { getSocket } from "@/lib/socket";
 
 export interface AuthUser {
   id: string;
@@ -99,6 +100,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const socket = getSocket(user.id);
+
+    const onTrustScoreUpdate = (payload: { trustScore: number }) => {
+      setUser((prev) => (prev ? { ...prev, trustScore: payload.trustScore } : prev));
+    };
+
+    socket.on("trustScore:update", onTrustScoreUpdate);
+    return () => {
+      socket.off("trustScore:update", onTrustScoreUpdate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   return (
     <AuthContext.Provider value={{ user, loading, refresh, login, register, logout }}>

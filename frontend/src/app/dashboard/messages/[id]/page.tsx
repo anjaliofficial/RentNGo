@@ -91,11 +91,16 @@ export default function ConversationPage() {
             <div className="h-6 w-40 animate-pulse rounded bg-neutral-100" />
           ) : (
             <>
-              <Avatar name={other?.fullName ?? "User"} src={resolveMediaUrl(other?.avatar)} size={40} />
+              <Link href={other ? `/profile/${other._id}` : "#"} className="shrink-0">
+                <Avatar name={other?.fullName ?? "User"} src={resolveMediaUrl(other?.avatar)} size={40} />
+              </Link>
               <div>
-                <p className="text-sm font-semibold text-primary-900">
+                <Link
+                  href={other ? `/profile/${other._id}` : "#"}
+                  className="text-sm font-semibold text-primary-900 hover:underline"
+                >
                   {other?.fullName ?? "Unknown user"}
-                </p>
+                </Link>
                 {conversation?.equipment && (
                   <Link
                     href={`/browse/${conversation.equipment._id}`}

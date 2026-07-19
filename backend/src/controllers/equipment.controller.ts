@@ -208,6 +208,7 @@ async searchEquipment(
     const result =
       await equipmentService.searchEquipment({
         search: req.query.search as string,
+        owner: req.query.owner as string,
         category: req.query.category as string,
         location: req.query.location as string,
         condition: req.query.condition as string,

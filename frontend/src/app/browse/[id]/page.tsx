@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { format } from "date-fns";
 import {
   MapPin,
@@ -354,13 +355,15 @@ export default function EquipmentDetailPage() {
 
             <Card>
               <h2 className="font-headline text-sm font-semibold text-primary-900">Owner</h2>
-              <div className="mt-3 flex items-center gap-3">
+              <Link href={`/profile/${item.owner._id}`} className="mt-3 flex items-center gap-3">
                 <Avatar name={item.owner.fullName} src={resolveMediaUrl(item.owner.avatar)} size={44} />
                 <div>
-                  <p className="text-sm font-medium text-primary-900">{item.owner.fullName}</p>
+                  <p className="text-sm font-medium text-primary-900 hover:underline">
+                    {item.owner.fullName}
+                  </p>
                   <Badge tone="trust">Trust {item.owner.trustScore}/100</Badge>
                 </div>
-              </div>
+              </Link>
 
               {profile && (
                 <div className="mt-4 space-y-2 border-t border-neutral-100 pt-4 text-xs text-neutral-600">

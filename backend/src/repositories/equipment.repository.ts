@@ -89,6 +89,7 @@ async search(
 ) {
   const {
     search,
+    owner,
     category,
     location,
     condition,
@@ -101,6 +102,11 @@ async search(
   } = filters;
 
   const query: any = {};
+
+  // Owner
+  if (owner) {
+    query.owner = owner;
+  }
 
   // Search
   if (search) {

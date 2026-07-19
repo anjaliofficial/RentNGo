@@ -1,6 +1,7 @@
 import reviewRepository from "../repositories/review.repository";
 import bookingRepository from "../repositories/booking.repository";
 import notificationService from "./notification.service";
+import { getIO } from "../socket/socket";
 
 import User from "../models/user.model";
 import { Types } from "mongoose";
@@ -143,6 +144,12 @@ class ReviewService {
     user.trustScore = score;
 
     await user.save();
+
+    try {
+      getIO().to(userId).emit("trustScore:update", { trustScore: score });
+    } catch {
+      // Socket.IO is optional — the score is already persisted.
+    }
   }
 
   /**

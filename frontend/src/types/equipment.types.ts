@@ -71,6 +71,7 @@ export interface Equipment {
 
 export interface EquipmentSearchParams {
   search?: string;
+  owner?: string;
   category?: string;
   location?: string;
   condition?: string;

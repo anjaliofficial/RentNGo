@@ -1,6 +1,8 @@
 export interface EquipmentSearchDto {
   search?: string;
 
+  owner?: string;
+
   category?: string;
 
   location?: string;

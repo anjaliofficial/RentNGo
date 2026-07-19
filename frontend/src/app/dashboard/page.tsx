@@ -1,11 +1,26 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { CheckCircle2, Circle, Info } from "lucide-react";
+
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import TrustScoreRing from "../../components/dashboard/TrustScoreRing";
 import { useAuth } from "../../components/auth/AuthProvider";
+import userService from "../../services/user.service";
+import { PublicProfile } from "../../types/user.types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    userService
+      .getPublicProfile(user.id)
+      .then(({ data }) => setProfile(data.data))
+      .catch(() => undefined);
+  }, [user?.id]);
 
   return (
     <DashboardLayout crumb="Dashboard">
@@ -13,16 +28,55 @@ export default function DashboardPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Trust Score Card */}
         <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="text-lg font-bold text-primary-900 mb-4">My Trust Score</h2>
+          <h2 className="text-lg font-bold text-primary-900 mb-1">My Trust Score</h2>
+          <p className="mb-4 flex items-start gap-1.5 text-xs text-neutral-500">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            Your score reflects how reliable you are on RentNGo. It rises with completed
+            rentals and positive reviews, and drops with disputes or cancellations — updates
+            here happen live.
+          </p>
           <div className="flex items-center gap-6">
             <TrustScoreRing score={user?.trustScore ?? 50} size={120} />
             <ul className="space-y-2 text-sm text-neutral-600">
-              <li>✅ Identity Verified (Government ID & Biometrics)</li>
-              <li>✅ Zero Disputes (26 successful transactions)</li>
-              <li>⭐ Avg. Rating: 5.0 (10 lender reviews)</li>
-              <li>🔒 Secure Payouts (NFA Fully Enlisted)</li>
+              <li className="flex items-center gap-2">
+                {user?.emailVerified ? (
+                  <CheckCircle2 className="h-4 w-4 text-tertiary-600" />
+                ) : (
+                  <Circle className="h-4 w-4 text-neutral-300" />
+                )}
+                Email Verified
+              </li>
+              <li className="flex items-center gap-2">
+                {user?.verificationStatus === "approved" ? (
+                  <CheckCircle2 className="h-4 w-4 text-tertiary-600" />
+                ) : (
+                  <Circle className="h-4 w-4 text-neutral-300" />
+                )}
+                Government ID Verified
+              </li>
+              <li className="flex items-center gap-2">
+                {user?.mfaEnabled ? (
+                  <CheckCircle2 className="h-4 w-4 text-tertiary-600" />
+                ) : (
+                  <Circle className="h-4 w-4 text-neutral-300" />
+                )}
+                Two-Factor Authentication
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-tertiary-600" />
+                {profile?.completedRentals ?? 0} completed rental
+                {profile?.completedRentals === 1 ? "" : "s"}
+              </li>
             </ul>
           </div>
+          {!user?.emailVerified || user?.verificationStatus !== "approved" || !user?.mfaEnabled ? (
+            <Link
+              href="/settings"
+              className="mt-4 inline-block text-xs font-semibold text-secondary-600 hover:underline"
+            >
+              Complete verification to raise your score →
+            </Link>
+          ) : null}
         </div>
 
         {/* Circular Impact Card */}
