@@ -12,6 +12,7 @@ import bookingRoutes from "./routes/booking.routes";
 import reviewRoutes from "./routes/review.routes";
 import notificationRoutes from "./routes/notification.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
+import chatRoutes from "./routes/chat.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 const app = express();
 
@@ -94,6 +95,11 @@ app.use(
 app.use(
   "/api/v1/wishlist",
   wishlistRoutes
+);
+
+app.use(
+  "/api/v1/conversations",
+  chatRoutes
 );
 
 import uploadRoutes from "./routes/upload.routes";

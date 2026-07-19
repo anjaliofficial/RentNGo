@@ -1,16 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
-import { CalendarDays, Heart, HelpCircle, LayoutDashboard, ListChecks, PlusSquare, Settings, ShieldCheck } from "lucide-react";
+import {
+  CalendarDays,
+  Compass,
+  Heart,
+  HelpCircle,
+  LayoutDashboard,
+  ListChecks,
+  LogOut,
+  MessageCircle,
+  PlusSquare,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 
 const DASHBOARD_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/explore", label: "Explore", icon: Compass },
   { href: "/bookings", label: "My rentals", icon: CalendarDays },
   { href: "/dashboard/list-equipment", label: "List Equipment", icon: PlusSquare },
   { href: "/dashboard/my-listings", label: "My Listings", icon: ListChecks },
+  { href: "/dashboard/messages", label: "Messages", icon: MessageCircle },
   { href: "/wishlist", label: "Wishlist", icon: Heart },
 ];
 
@@ -21,7 +35,13 @@ const DASHBOARD_FOOTER_NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   return (
     <aside className="hidden h-screen w-60 shrink-0 flex-col border-r border-neutral-100 bg-white md:flex">
@@ -74,7 +94,5 @@ export default function Sidebar() {
             {item.label}
           </Link>
         ))}
-      </div>
-    </aside>
-  );
-}
+        <button
+          onClick={h
