@@ -95,4 +95,13 @@ export default function Sidebar() {
           </Link>
         ))}
         <button
-          onClick={h
+          onClick={handleLogout}
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-500 hover:bg-red-50"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
+      </div>
+    </aside>
+  );
+}
