@@ -17,6 +17,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+import { Avatar } from "../ui";
+import { resolveMediaUrl } from "@/utils/format";
 
 const DASHBOARD_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -53,10 +55,16 @@ export default function Sidebar() {
       </div>
 
       {user && (
-        <div className="mx-4 mb-4 rounded-lg bg-tertiary-50 px-3 py-2.5">
-          <p className="text-xs font-semibold text-primary-900">{user.fullName}</p>
-          <p className="text-xs text-tertiary-700">Score: {user.trustScore}/100</p>
-        </div>
+        <Link
+          href="/settings"
+          className="mx-4 mb-4 flex items-center gap-2.5 rounded-lg bg-tertiary-50 px-3 py-2.5"
+        >
+          <Avatar name={user.fullName} src={resolveMediaUrl(user.avatar)} size={32} />
+          <div className="min-w-0">
+            <p className="truncate text-xs font-semibold text-primary-900">{user.fullName}</p>
+            <p className="text-xs text-tertiary-700">Score: {user.trustScore}/100</p>
+          </div>
+        </Link>
       )}
 
       <nav className="flex flex-1 flex-col gap-1 px-3">

@@ -9,3 +9,16 @@ export interface PublicProfile {
   createdAt: string;
   completedRentals: number;
 }
+
+export interface UpdateProfileInput {
+  fullName: string;
+  phone?: string;
+  address?: string;
+  bio?: string;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { Bell, Globe, Search } from "lucide-react";
 import { Avatar } from "../ui";
 import { useAuth } from "../auth/AuthProvider";
+import { resolveMediaUrl } from "@/utils/format";
 
 export default function Topbar({ crumb = "Dashboard" }: { crumb?: string }) {
   const { user } = useAuth();
@@ -34,7 +36,11 @@ export default function Topbar({ crumb = "Dashboard" }: { crumb?: string }) {
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-secondary-500" />
         </button>
-        {user && <Avatar name={user.fullName} size={32} />}
+        {user && (
+          <Link href="/settings" aria-label="Your profile">
+            <Avatar name={user.fullName} src={resolveMediaUrl(user.avatar)} size={32} />
+          </Link>
+        )}
       </div>
     </header>
   );

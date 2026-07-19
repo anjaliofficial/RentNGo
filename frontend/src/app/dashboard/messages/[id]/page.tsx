@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import chatService from "@/services/chat.service";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSocket } from "@/lib/socket";
+import { resolveMediaUrl } from "@/utils/format";
 import { Conversation, Message } from "@/types/chat.types";
 
 export default function ConversationPage() {
@@ -86,7 +87,7 @@ export default function ConversationPage() {
             <div className="h-6 w-40 animate-pulse rounded bg-neutral-100" />
           ) : (
             <>
-              <Avatar name={other?.fullName ?? "User"} size={40} />
+              <Avatar name={other?.fullName ?? "User"} src={resolveMediaUrl(other?.avatar)} size={40} />
               <div>
                 <p className="text-sm font-semibold text-primary-900">
                   {other?.fullName ?? "Unknown user"}

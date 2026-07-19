@@ -9,6 +9,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, Avatar } from "@/components/ui";
 import chatService from "@/services/chat.service";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { resolveMediaUrl } from "@/utils/format";
 import { Conversation } from "@/types/chat.types";
 
 export default function MessagesPage() {
@@ -55,7 +56,11 @@ export default function MessagesPage() {
             return (
               <Link key={conversation._id} href={`/dashboard/messages/${conversation._id}`}>
                 <Card className="flex items-center gap-4 transition-shadow hover:shadow-md">
-                  <Avatar name={other?.fullName ?? "User"} size={44} />
+                  <Avatar
+                    name={other?.fullName ?? "User"}
+                    src={resolveMediaUrl(other?.avatar)}
+                    size={44}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-semibold text-primary-900">

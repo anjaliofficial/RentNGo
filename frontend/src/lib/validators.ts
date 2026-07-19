@@ -39,3 +39,29 @@ export const equipmentPricingSchema = z.object({
 });
 
 export type EquipmentPricingSchema = z.infer<typeof equipmentPricingSchema>;
+
+export const profileSchema = z.object({
+  fullName: z.string().min(2, "Enter your full name"),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  bio: z.string().max(250, "Keep your bio under 250 characters").optional(),
+});
+
+export type ProfileSchema = z.infer<typeof profileSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password"),
+    newPassword: z
+      .string()
+      .min(8, "At least 8 characters")
+      .regex(/[A-Z]/, "Add an uppercase letter")
+      .regex(/[0-9]/, "Add a number"),
+    confirmPassword: z.string().min(1, "Confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordSchema = z.infer<typeof changePasswordSchema>;

@@ -17,6 +17,7 @@ import equipmentService, { toEquipmentCardData } from "@/services/equipment.serv
 import bookingService from "@/services/booking.service";
 import userService from "@/services/user.service";
 import reviewService from "@/services/review.service";
+import chatService from "@/services/chat.service";
 import { resolveMediaUrl } from "@/utils/format";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -44,6 +45,7 @@ export default function EquipmentDetailPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [contacting, setContacting] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -107,6 +109,25 @@ export default function EquipmentDetailPage() {
         )
       : 0;
   const totalAmount = totalDays > 0 ? totalDays * item.pricePerDay + item.securityDeposit : 0;
+
+  const contactOwner = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    try {
+      setContacting(true);
+      const { data } = await chatService.start({
+        recipientId: item.owner._id,
+        equipmentId: item._id,
+      });
+      router.push(`/dashboard/messages/${data.data._id}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not start conversation");
+    } finally {
+      setContacting(false);
+    }
+  };
 
   const requestBooking = async () => {
     if (!user) {
@@ -275,7 +296,7 @@ export default function EquipmentDetailPage() {
             <Card>
               <h2 className="font-headline text-sm font-semibold text-primary-900">Owner</h2>
               <div className="mt-3 flex items-center gap-3">
-                <Avatar name={item.owner.fullName} size={44} />
+                <Avatar name={item.owner.fullName} src={resolveMediaUrl(item.owner.avatar)} size={44} />
                 <div>
                   <p className="text-sm font-medium text-primary-900">{item.owner.fullName}</p>
                   <Badge tone="trust">Trust {item.owner.trustScore}/100</Badge>
@@ -308,14 +329,17 @@ export default function EquipmentDetailPage() {
                 </div>
               )}
 
-              <Button
-                variant="outline"
-                className="mt-4 w-full opacity-60"
-                onClick={() => toast("Messaging is coming in a future update.")}
-              >
-                <MessageCircle className="h-4 w-4" />
-                Contact Owner
-              </Button>
+              {!isOwner && (
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full"
+                  disabled={contacting}
+                  onClick={contactOwner}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {contacting ? "Starting chat..." : "Contact Owner"}
+                </Button>
+              )}
             </Card>
 
             <Card>
@@ -337,7 +361,11 @@ export default function EquipmentDetailPage() {
                   {reviews.slice(0, 5).map((review) => (
                     <li key={review._id} className="border-t border-neutral-100 pt-3 first:border-0 first:pt-0">
                       <div className="flex items-center gap-2">
-                        <Avatar name={review.reviewer.fullName} size={28} />
+                        <Avatar
+                          name={review.reviewer.fullName}
+                          src={resolveMediaUrl(review.reviewer.avatar)}
+                          size={28}
+                        />
                         <span className="text-sm font-medium text-primary-900">
                           {review.reviewer.fullName}
                         </span>

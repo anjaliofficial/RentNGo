@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 import conversationRepository from "../repositories/conversation.repository";
 import messageRepository from "../repositories/message.repository";
 import User from "../models/user.model";
@@ -33,8 +35,8 @@ class ChatService {
     }
 
     const created = await conversationRepository.create({
-      participants: [userId, body.recipientId] as never,
-      equipment: body.equipmentId as never,
+      participants: [new Types.ObjectId(userId), new Types.ObjectId(body.recipientId)],
+      equipment: body.equipmentId ? new Types.ObjectId(body.equipmentId) : undefined,
     });
 
     return conversationRepository.findById(String(created._id));
@@ -78,8 +80,8 @@ class ChatService {
     }
 
     const message = await messageRepository.create({
-      conversation: conversationId as never,
-      sender: userId as never,
+      conversation: new Types.ObjectId(conversationId),
+      sender: new Types.ObjectId(userId),
       text: body.text.trim(),
     });
 

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
 import { verifyAccessToken } from "../utils/jwt";
 import User from "../models/user.model";
 import ApiError from "../error/ApiError";
@@ -28,7 +29,18 @@ export const authenticate = async (
 
     const token = authHeader.split(" ")[1];
 
-    const payload = verifyAccessToken(token);
+    let payload;
+    try {
+      payload = verifyAccessToken(token);
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        throw new ApiError(401, "Access token expired");
+      }
+      if (err instanceof JsonWebTokenError) {
+        throw new ApiError(401, "Invalid access token");
+      }
+      throw err;
+    }
 
     const user = await User.findById(payload.userId);
 
