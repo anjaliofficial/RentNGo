@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import equipmentController from "../controllers/equipment.controller";
+import feedbackController from "../controllers/feedback.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { authorize, MEMBER_ROLES } from "../middlewares/role.middleware";
 const router = Router();
@@ -30,6 +31,31 @@ router.get("/:id", equipmentController.getEquipmentById);
 router.get(
   "/:id/availability",
   equipmentController.getAvailability
+);
+
+/**
+ * Listing Feedback — open to any authenticated user, not just past renters
+ */
+
+// Public
+router.get(
+  "/:id/feedback",
+  feedbackController.getFeedback
+);
+
+// Protected
+router.post(
+  "/:id/feedback",
+  authenticate,
+  authorize(...MEMBER_ROLES, "admin"),
+  feedbackController.addFeedback
+);
+
+// Protected — author only
+router.delete(
+  "/:id/feedback/:feedbackId",
+  authenticate,
+  feedbackController.deleteFeedback
 );
 
 // Protected

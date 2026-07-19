@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { MapPin, Star, CalendarX2, ShieldCheck, MailCheck, KeyRound, MessageCircle } from "lucide-react";
+import {
+  MapPin,
+  Star,
+  CalendarX2,
+  ShieldCheck,
+  MailCheck,
+  KeyRound,
+  MessageCircle,
+  Trash2,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import Navbar from "@/components/layout/Navbar";
@@ -18,6 +27,7 @@ import bookingService from "@/services/booking.service";
 import userService from "@/services/user.service";
 import reviewService from "@/services/review.service";
 import chatService from "@/services/chat.service";
+import feedbackService from "@/services/feedback.service";
 import { resolveMediaUrl } from "@/utils/format";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -28,6 +38,7 @@ import {
 } from "@/types/equipment.types";
 import { PublicProfile } from "@/types/user.types";
 import { Review } from "@/types/review.types";
+import { EquipmentFeedback } from "@/types/feedback.types";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -46,6 +57,10 @@ export default function EquipmentDetailPage() {
   const [endDate, setEndDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [contacting, setContacting] = useState(false);
+  const [feedbackList, setFeedbackList] = useState<EquipmentFeedback[]>([]);
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
