@@ -63,6 +63,7 @@ export interface Equipment {
   averageRating: number;
   totalReviews: number;
   totalBookings: number;
+  views: number;
   owner: EquipmentOwner;
   createdAt: string;
   updatedAt: string;

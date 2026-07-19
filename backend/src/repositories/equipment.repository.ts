@@ -72,6 +72,15 @@ class EquipmentRepository {
     return Equipment.findByIdAndDelete(id);
   }
 
+  /**
+   * Increment View Count
+   */
+  async incrementViews(id: string): Promise<void> {
+    await Equipment.findByIdAndUpdate(id, {
+      $inc: { views: 1 },
+    });
+  }
+
 /**
  * Advanced Search
  */

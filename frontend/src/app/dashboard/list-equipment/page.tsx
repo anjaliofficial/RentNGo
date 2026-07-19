@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import { Check, ImagePlus, Trash2, X } from "lucide-react";
+import { Check, ImagePlus, Loader2, Trash2, X } from "lucide-react";
 import clsx from "clsx";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import equipmentService from "@/services/equipment.service";
 import uploadService from "@/services/upload.service";
-import { resolveMediaUrl } from "@/utils/format";
 import {
   equipmentDetailsSchema,
   EquipmentDetailsSchema,
@@ -30,15 +29,24 @@ import {
 
 const STEPS = ["Details", "Pricing & Deposit", "Availability & Photos"] as const;
 
+interface PendingPhoto {
+  id: string;
+  previewUrl: string;
+  uploadedPath?: string;
+  status: "uploading" | "done" | "error";
+}
+
 export default function ListEquipmentPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [details, setDetails] = useState<EquipmentDetailsSchema | null>(null);
   const [pricing, setPricing] = useState<EquipmentPricingSchema | null>(null);
   const [available, setAvailable] = useState(true);
-  const [images, setImages] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const uploading = photos.some((p) => p.status === "uploading");
+  const images = photos.filter((p) => p.status === "done" && p.uploadedPath).map((p) => p.uploadedPath!);
 
   const detailsForm = useForm<EquipmentDetailsSchema>({
     resolver: zodResolver(equipmentDetailsSchema),
@@ -63,20 +71,41 @@ export default function ListEquipmentPage() {
   const onSelectPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
+    e.target.value = "";
+
+    // Show local previews immediately, before the upload round-trip completes.
+    const pending: PendingPhoto[] = files.map((file) => ({
+      id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
+      previewUrl: URL.createObjectURL(file),
+      status: "uploading",
+    }));
+    setPhotos((prev) => [...prev, ...pending]);
+
     try {
-      setUploading(true);
       const { data } = await uploadService.uploadMultiple(files);
-      setImages((prev) => [...prev, ...data.data.images]);
+      const uploadedPaths: string[] = data.data.images;
+      setPhotos((prev) =>
+        prev.map((p, _i) => {
+          const pendingIndex = pending.findIndex((pp) => pp.id === p.id);
+          return pendingIndex === -1
+            ? p
+            : { ...p, status: "done", uploadedPath: uploadedPaths[pendingIndex] };
+        })
+      );
     } catch (err: any) {
       toast.error(err.response?.data?.message ?? "Could not upload photos");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
+      setPhotos((prev) =>
+        prev.map((p) => (pending.some((pp) => pp.id === p.id) ? { ...p, status: "error" } : p))
+      );
     }
   };
 
-  const removeImage = (path: string) => {
-    setImages((prev) => prev.filter((img) => img !== path));
+  const removePhoto = (id: string) => {
+    setPhotos((prev) => {
+      const target = prev.find((p) => p.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
   const finish = async () => {
@@ -227,14 +256,14 @@ export default function ListEquipmentPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="Daily Rate ($)"
+                label="Daily Rate (Rs)"
                 type="number"
                 min={1}
                 {...pricingForm.register("pricePerDay", { valueAsNumber: true })}
                 error={pricingForm.formState.errors.pricePerDay?.message}
               />
               <Input
-                label="Security Deposit ($)"
+                label="Security Deposit (Rs)"
                 type="number"
                 min={0}
                 {...pricingForm.register("securityDeposit", { valueAsNumber: true })}
@@ -280,19 +309,34 @@ export default function ListEquipmentPage() {
             </label>
 
             <div>
-              <span className="font-label text-xs font-semibold text-primary-700">Photos</span>
+              <span className="font-label text-xs font-semibold text-primary-700">
+                Photos {photos.length > 0 && `(${photos.length} selected)`}
+              </span>
+              <p className="mt-1 text-xs text-neutral-500">
+                Select multiple photos at once — you'll see a preview instantly while they upload.
+              </p>
               <div className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-4">
-                {images.map((img) => (
-                  <div key={img} className="group relative aspect-square overflow-hidden rounded-lg">
+                {photos.map((photo) => (
+                  <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={resolveMediaUrl(img)}
+                      src={photo.previewUrl}
                       alt=""
                       className="h-full w-full object-cover"
                     />
+                    {photo.status === "uploading" && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-primary-900/50">
+                        <Loader2 className="h-5 w-5 animate-spin text-white" />
+                      </div>
+                    )}
+                    {photo.status === "error" && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-red-900/60 text-[10px] font-semibold text-white">
+                        Failed
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => removeImage(img)}
+                      onClick={() => removePhoto(photo.id)}
                       className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary-900/70 text-white opacity-0 transition-opacity group-hover:opacity-100"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -302,13 +346,12 @@ export default function ListEquipmentPage() {
 
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-neutral-200 text-neutral-400 hover:border-secondary-500 hover:text-secondary-600">
                   <ImagePlus className="h-5 w-5" />
-                  <span className="text-xs">{uploading ? "Uploading..." : "Add photo"}</span>
+                  <span className="text-xs">Add photos</span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     multiple
                     className="hidden"
-                    disabled={uploading}
                     onChange={onSelectPhotos}
                   />
                 </label>
@@ -320,9 +363,9 @@ export default function ListEquipmentPage() {
                 Back
               </Button>
               <Button onClick={finish} disabled={submitting || uploading}>
-                {submitting ? "Publishing..." : "Publish Listing"}
+                {submitting ? "Publishing..." : uploading ? "Uploading photos..." : "Publish Listing"}
               </Button>
-              {images.length === 0 && (
+              {photos.length === 0 && (
                 <span className="flex items-center gap-1 text-xs text-neutral-400">
                   <Trash2 className="h-3.5 w-3.5" /> No photos added yet
                 </span>

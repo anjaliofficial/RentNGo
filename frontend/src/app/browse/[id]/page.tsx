@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { MapPin, Star, CalendarX2 } from "lucide-react";
+import { MapPin, Star, CalendarX2, ShieldCheck, MailCheck, KeyRound, MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 import Navbar from "@/components/layout/Navbar";
@@ -12,8 +12,11 @@ import Container from "@/components/layout/Container";
 import { Card, Badge, Avatar } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import equipmentService from "@/services/equipment.service";
+import EquipmentCard from "@/components/equipment/EquipmentCard";
+import equipmentService, { toEquipmentCardData } from "@/services/equipment.service";
 import bookingService from "@/services/booking.service";
+import userService from "@/services/user.service";
+import reviewService from "@/services/review.service";
 import { resolveMediaUrl } from "@/utils/format";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -22,6 +25,8 @@ import {
   EQUIPMENT_CONDITION_LABELS,
   Equipment,
 } from "@/types/equipment.types";
+import { PublicProfile } from "@/types/user.types";
+import { Review } from "@/types/review.types";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -31,6 +36,9 @@ export default function EquipmentDetailPage() {
   const { user } = useAuth();
   const [item, setItem] = useState<Equipment | null>(null);
   const [bookedRanges, setBookedRanges] = useState<BookedDateRange[]>([]);
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [similarItems, setSimilarItems] = useState<Equipment[]>([]);
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState("");
@@ -49,6 +57,22 @@ export default function EquipmentDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [params.id]);
+
+  useEffect(() => {
+    if (!item) return;
+    userService
+      .getPublicProfile(item.owner._id)
+      .then(({ data }) => setProfile(data.data))
+      .catch(() => undefined);
+    reviewService
+      .getForUser(item.owner._id)
+      .then(({ data }) => setReviews(data.data))
+      .catch(() => undefined);
+    equipmentService
+      .search({ category: item.category, limit: 5 })
+      .then(({ data }) => setSimilarItems(data.data.data.filter((e: Equipment) => e._id !== item._id)))
+      .catch(() => undefined);
+  }, [item]);
 
   if (loading) {
     return (
@@ -182,7 +206,7 @@ export default function EquipmentDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs text-neutral-400">Security Deposit</p>
-                  <p className="font-medium text-primary-900">${item.securityDeposit}</p>
+                  <p className="font-medium text-primary-900">Rs {item.securityDeposit}</p>
                 </div>
               </div>
             </div>
@@ -192,7 +216,7 @@ export default function EquipmentDetailPage() {
             <Card>
               <div className="flex items-baseline justify-between">
                 <span className="font-headline text-3xl font-bold text-primary-900">
-                  ${item.pricePerDay}
+                  Rs {item.pricePerDay}
                   <span className="text-sm font-normal text-neutral-500">/day</span>
                 </span>
                 <Badge tone={item.available ? "success" : "neutral"}>
@@ -226,10 +250,10 @@ export default function EquipmentDetailPage() {
                   {totalDays > 0 && (
                     <div className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
                       <span>
-                        {totalDays} day{totalDays > 1 ? "s" : ""} · ${item.pricePerDay}/day + $
+                        {totalDays} day{totalDays > 1 ? "s" : ""} · Rs {item.pricePerDay}/day + Rs{" "}
                         {item.securityDeposit} deposit
                       </span>
-                      <span className="font-semibold text-primary-900">${totalAmount}</span>
+                      <span className="font-semibold text-primary-900">Rs {totalAmount}</span>
                     </div>
                   )}
 
@@ -251,12 +275,82 @@ export default function EquipmentDetailPage() {
             <Card>
               <h2 className="font-headline text-sm font-semibold text-primary-900">Owner</h2>
               <div className="mt-3 flex items-center gap-3">
-                <Avatar name={item.owner.fullName} size={40} />
+                <Avatar name={item.owner.fullName} size={44} />
                 <div>
                   <p className="text-sm font-medium text-primary-900">{item.owner.fullName}</p>
                   <Badge tone="trust">Trust {item.owner.trustScore}/100</Badge>
                 </div>
               </div>
+
+              {profile && (
+                <div className="mt-4 space-y-2 border-t border-neutral-100 pt-4 text-xs text-neutral-600">
+                  <p>
+                    Member since {format(new Date(profile.createdAt), "MMM yyyy")} ·{" "}
+                    {profile.completedRentals} rental{profile.completedRentals === 1 ? "" : "s"} completed
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.emailVerified && (
+                      <span className="flex items-center gap-1 rounded-full bg-tertiary-50 px-2 py-1 text-[11px] font-semibold text-tertiary-700">
+                        <MailCheck className="h-3 w-3" /> Email Verified
+                      </span>
+                    )}
+                    {profile.mfaEnabled && (
+                      <span className="flex items-center gap-1 rounded-full bg-tertiary-50 px-2 py-1 text-[11px] font-semibold text-tertiary-700">
+                        <KeyRound className="h-3 w-3" /> 2FA Enabled
+                      </span>
+                    )}
+                    {profile.verificationStatus === "approved" && (
+                      <span className="flex items-center gap-1 rounded-full bg-tertiary-50 px-2 py-1 text-[11px] font-semibold text-tertiary-700">
+                        <ShieldCheck className="h-3 w-3" /> ID Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Button
+                variant="outline"
+                className="mt-4 w-full opacity-60"
+                onClick={() => toast("Messaging is coming in a future update.")}
+              >
+                <MessageCircle className="h-4 w-4" />
+                Contact Owner
+              </Button>
+            </Card>
+
+            <Card>
+              <div className="flex items-center justify-between">
+                <h2 className="font-headline text-sm font-semibold text-primary-900">Reviews</h2>
+                {reviews.length > 0 && (
+                  <span className="flex items-center gap-1 text-sm font-medium text-neutral-600">
+                    <Star className="h-4 w-4 fill-secondary-500 text-secondary-500" />
+                    {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)}
+                    <span className="text-neutral-400">({reviews.length})</span>
+                  </span>
+                )}
+              </div>
+
+              {reviews.length === 0 ? (
+                <p className="mt-2 text-sm text-neutral-500">No reviews yet.</p>
+              ) : (
+                <ul className="mt-3 space-y-4">
+                  {reviews.slice(0, 5).map((review) => (
+                    <li key={review._id} className="border-t border-neutral-100 pt-3 first:border-0 first:pt-0">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={review.reviewer.fullName} size={28} />
+                        <span className="text-sm font-medium text-primary-900">
+                          {review.reviewer.fullName}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-xs text-neutral-500">
+                          <Star className="h-3 w-3 fill-secondary-500 text-secondary-500" />
+                          {review.rating}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 text-xs text-neutral-600">{review.comment}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Card>
 
             <Card>
@@ -287,6 +381,17 @@ export default function EquipmentDetailPage() {
             </Card>
           </div>
         </div>
+
+        {similarItems.length > 0 && (
+          <div className="mt-14">
+            <h2 className="font-headline text-xl font-bold text-primary-900">Similar Items</h2>
+            <div className="mt-5 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              {similarItems.slice(0, 4).map((similar) => (
+                <EquipmentCard key={similar._id} item={toEquipmentCardData(similar)} />
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
       <Footer />
     </>

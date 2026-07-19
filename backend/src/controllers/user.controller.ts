@@ -15,6 +15,31 @@ import { successResponse } from "../utils/response";
 
 class UserController {
   /**
+   * GET /api/v1/users/:id/public-profile
+   */
+  async getPublicProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id ?? "";
+
+      const profile = await userService.getPublicProfile(id);
+
+      successResponse(
+        res,
+        "Public profile fetched successfully.",
+        profile
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * GET /api/v1/users/profile
    */
   async getProfile(

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { CalendarDays, Heart, HelpCircle, LayoutDashboard, PlusSquare, Settings, ShieldCheck } from "lucide-react";
+import { CalendarDays, Heart, HelpCircle, LayoutDashboard, ListChecks, PlusSquare, Settings, ShieldCheck } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 
 const DASHBOARD_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/bookings", label: "My rentals", icon: CalendarDays },
   { href: "/dashboard/list-equipment", label: "List Equipment", icon: PlusSquare },
+  { href: "/dashboard/my-listings", label: "My Listings", icon: ListChecks },
   { href: "/wishlist", label: "Wishlist", icon: Heart },
 ];
 
@@ -40,7 +41,10 @@ export default function Sidebar() {
 
       <nav className="flex flex-1 flex-col gap-1 px-3">
         {DASHBOARD_NAV.map((item) => {
-          const active = pathname === item.href;
+          const active =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

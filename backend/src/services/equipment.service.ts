@@ -77,6 +77,8 @@ class EquipmentService {
       );
     }
 
+    await equipmentRepository.incrementViews(id);
+
     return equipment;
   }
 
@@ -109,7 +111,7 @@ class EquipmentService {
     body: UpdateEquipmentDto
   ) {
     const equipment =
-      await equipmentRepository.findById(equipmentId);
+      await equipmentRepository.findRawById(equipmentId);
 
     if (!equipment) {
       throw new ApiError(
@@ -139,7 +141,7 @@ class EquipmentService {
     ownerId: string
   ) {
     const equipment =
-      await equipmentRepository.findById(equipmentId);
+      await equipmentRepository.findRawById(equipmentId);
 
     if (!equipment) {
       throw new ApiError(

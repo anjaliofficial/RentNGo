@@ -14,7 +14,7 @@ export interface AuthUser {
   id: string;
   fullName: string;
   email: string;
-  role: "CUSTOMER" | "OWNER" | "MODERATOR" | "ADMIN";
+  role: "customer" | "owner" | "moderator" | "admin";
   trustScore: number;
   avatar?: string;
   phone?: string;
@@ -24,6 +24,9 @@ export interface AuthUser {
   mfaEnabled?: boolean;
   verificationStatus?: string;
 }
+
+/** Backend returns `_id`; normalize to the `id` field this app uses everywhere else. */
+const toAuthUser = (raw: any): AuthUser => ({ ...raw, id: raw._id });
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -49,8 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
+      // Response shape: { success, message, data: <IUserResponse> }
       const { data } = await AuthService.me();
-      setUser(data.user);
+      setUser(toAuthUser(data.data));
     } catch {
       // apiClient refreshes an expired access token once and retries /me.
       setUser(null);
@@ -62,10 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    // Response shape: { success, message, data: { user, accessToken, refreshToken } }
     const res = await AuthService.login({ email, password });
-    localStorage.setItem("accessToken", res.data.accessToken);
-    localStorage.setItem("refreshToken", res.data.refreshToken);
-    setUser(res.data.user);
+    const { user: rawUser, accessToken, refreshToken } = res.data.data;
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+    setUser(toAuthUser(rawUser));
   };
 
   const register = async (data: {
@@ -77,9 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     bio?: string;
   }) => {
     const res = await AuthService.register(data);
-    localStorage.setItem("accessToken", res.data.accessToken);
-    localStorage.setItem("refreshToken", res.data.refreshToken);
-    setUser(res.data.user);
+    const { user: rawUser, accessToken, refreshToken } = res.data.data;
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+    setUser(toAuthUser(rawUser));
   };
 
   const logout = useCallback(async () => {

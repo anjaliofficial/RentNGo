@@ -1,4 +1,5 @@
 import userRepository from "../repositories/user.repository";
+import bookingRepository from "../repositories/booking.repository";
 
 import {
   UpdateProfileDto,
@@ -28,6 +29,32 @@ class UserService {
     }
 
     return user;
+  }
+
+  /**
+   * Get Public Profile (safe fields only, no auth required)
+   */
+  async getPublicProfile(id: string) {
+    const user = await userRepository.findById(id);
+
+    if (!user) {
+      throw new ApiError(404, "User not found.");
+    }
+
+    const completedRentals =
+      await bookingRepository.countCompletedForOwner(id);
+
+    return {
+      _id: user._id.toString(),
+      fullName: user.fullName,
+      avatar: user.avatar || "",
+      trustScore: user.trustScore,
+      verificationStatus: user.verificationStatus,
+      emailVerified: user.emailVerified,
+      mfaEnabled: user.mfaEnabled,
+      createdAt: user.createdAt,
+      completedRentals,
+    };
   }
 
   /**

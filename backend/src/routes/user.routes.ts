@@ -7,7 +7,15 @@ import { authenticate } from "../middlewares/auth.middleware";
 const router = Router();
 
 /**
- * All routes require authentication
+ * Public — no auth required
+ */
+router.get(
+  "/:id/public-profile",
+  userController.getPublicProfile
+);
+
+/**
+ * All routes below require authentication
  */
 router.use(authenticate);
 

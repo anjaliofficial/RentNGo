@@ -29,7 +29,7 @@ export default function DashboardPage() {
         <div className="rounded-lg bg-white p-6 shadow">
           <h2 className="text-lg font-bold text-primary-900 mb-4">Circular Impact</h2>
           <p className="text-sm text-neutral-600">142 kg carbon emissions avoided</p>
-          <p className="text-sm text-neutral-600">$2,140 total net savings</p>
+          <p className="text-sm text-neutral-600">Rs 2,140 total net savings</p>
           <button className="mt-4 rounded bg-secondary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-secondary-600">
             Download Impact Report
           </button>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, ArrowRight } from "lucide-react";
 
 export interface EquipmentCardData {
   id: string;
@@ -55,7 +55,7 @@ export default function EquipmentCard({ item }: { item: EquipmentCardData }) {
 
         <div className="mt-auto flex items-center justify-between pt-2">
           <span className="font-headline text-base font-bold text-primary-900">
-            ${item.dailyRate}
+            Rs {item.dailyRate}
             <span className="text-xs font-normal text-neutral-500">/day</span>
           </span>
           {item.rating && (
@@ -65,6 +65,10 @@ export default function EquipmentCard({ item }: { item: EquipmentCardData }) {
             </span>
           )}
         </div>
+
+        <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-secondary-600 group-hover:text-secondary-700">
+          View Details <ArrowRight className="h-3.5 w-3.5" />
+        </span>
       </div>
     </Link>
   );

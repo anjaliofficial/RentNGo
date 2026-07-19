@@ -38,6 +38,7 @@ function BrowsePageContent() {
   const [categories, setCategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [sort, setSort] = useState<"latest" | "price" | "rating">("latest");
 
   const toggleCategory = (category: string) => {
     setCategories((prev) =>
@@ -45,7 +46,7 @@ function BrowsePageContent() {
     );
   };
 
-  const runSearch = async (targetPage = 1) => {
+  const runSearch = async (targetPage = 1, sortOverride?: typeof sort) => {
     try {
       setLoading(true);
       const { data } = await equipmentService.search({
@@ -53,6 +54,7 @@ function BrowsePageContent() {
         category: categories[0] || undefined,
         minPrice: minPrice ? Number(minPrice) : undefined,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        sort: sortOverride ?? sort,
         page: targetPage,
         limit: 12,
       });
@@ -80,16 +82,35 @@ function BrowsePageContent() {
     <>
       <Navbar />
       <Container className="py-10">
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-secondary-600">
-            Marketplace &gt; Search Results
-          </p>
-          <h1 className="mt-2 font-headline text-3xl font-bold text-primary-900">
-            {loading ? "Searching..." : `Found ${total} items`}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            Filtered for high-trust professional equipment in your area.
-          </p>
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-secondary-600">
+              Marketplace &gt; Search Results
+            </p>
+            <h1 className="mt-2 font-headline text-3xl font-bold text-primary-900">
+              {loading ? "Searching..." : `Found ${total} items`}
+            </h1>
+            <p className="mt-1 text-sm text-neutral-500">
+              Filtered for high-trust professional equipment in your area.
+            </p>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-neutral-600">
+            Sort by
+            <select
+              value={sort}
+              onChange={(e) => {
+                const next = e.target.value as typeof sort;
+                setSort(next);
+                runSearch(1, next);
+              }}
+              className="rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-secondary-500"
+            >
+              <option value="latest">Newest</option>
+              <option value="price">Price: Low to High</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </label>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
@@ -135,14 +156,14 @@ function BrowsePageContent() {
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  placeholder="$0"
+                  placeholder="Rs 0"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                 />
                 <span className="text-neutral-400">—</span>
                 <Input
                   type="number"
-                  placeholder="$500"
+                  placeholder="Rs 500"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                 />

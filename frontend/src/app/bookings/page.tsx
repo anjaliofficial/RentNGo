@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Star } from "lucide-react";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, Badge } from "@/components/ui";
+import { Card, Badge, Modal } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import bookingService from "@/services/booking.service";
+import reviewService from "@/services/review.service";
 import { resolveMediaUrl } from "@/utils/format";
 import { Booking, BookingStatus } from "@/types/booking.types";
 
@@ -36,14 +37,20 @@ export default function BookingsPage() {
   const [myRentals, setMyRentals] = useState<Booking[]>([]);
   const [requests, setRequests] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
 
   const load = async () => {
-    const [mine, owner] = await Promise.all([
-      bookingService.myBookings(),
-      bookingService.ownerBookings(),
-    ]);
-    setMyRentals(mine.data.data);
-    setRequests(owner.data.data);
+    try {
+      const [mine, owner] = await Promise.all([
+        bookingService.myBookings(),
+        bookingService.ownerBookings(),
+      ]);
+      setMyRentals(mine.data.data);
+      setRequests(owner.data.data);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not load your bookings");
+    }
   };
 
   useEffect(() => {
@@ -90,6 +97,14 @@ export default function BookingsPage() {
                     Cancel
                   </Button>
                 )}
+                {booking.bookingStatus === "completed" &&
+                  (reviewedIds.has(booking._id) ? (
+                    <Badge tone="success">Reviewed</Badge>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => setReviewTarget(booking)}>
+                      Leave a Review
+                    </Button>
+                  ))}
               </BookingRow>
             ))}
           </div>
@@ -149,12 +164,91 @@ export default function BookingsPage() {
                     Mark Returned
                   </Button>
                 )}
+                {booking.bookingStatus === "completed" &&
+                  (reviewedIds.has(booking._id) ? (
+                    <Badge tone="success">Reviewed</Badge>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => setReviewTarget(booking)}>
+                      Leave a Review
+                    </Button>
+                  ))}
               </BookingRow>
             ))}
           </div>
         )}
       </section>
+
+      <ReviewModal
+        booking={reviewTarget}
+        onClose={() => setReviewTarget(null)}
+        onSubmitted={(bookingId) => {
+          setReviewedIds((prev) => new Set(prev).add(bookingId));
+          setReviewTarget(null);
+        }}
+      />
     </DashboardLayout>
+  );
+}
+
+function ReviewModal({
+  booking,
+  onClose,
+  onSubmitted,
+}: {
+  booking: Booking | null;
+  onClose: () => void;
+  onSubmitted: (bookingId: string) => void;
+}) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async () => {
+    if (!booking) return;
+    try {
+      setSubmitting(true);
+      await reviewService.create({ bookingId: booking._id, rating, comment });
+      toast.success("Review submitted");
+      onSubmitted(booking._id);
+      setRating(5);
+      setComment("");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not submit review");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal open={!!booking} onClose={onClose} title="Leave a Review">
+      <div className="space-y-4">
+        <p className="text-sm text-neutral-500">{booking?.equipment?.title}</p>
+
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button key={n} type="button" onClick={() => setRating(n)}>
+              <Star
+                className={`h-6 w-6 ${
+                  n <= rating ? "fill-secondary-500 text-secondary-500" : "text-neutral-300"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+
+        <textarea
+          rows={4}
+          placeholder="Share your experience..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-secondary-500 focus:outline-none"
+        />
+
+        <Button className="w-full" onClick={submit} disabled={submitting || comment.trim().length === 0}>
+          {submitting ? "Submitting..." : "Submit Review"}
+        </Button>
+      </div>
+    </Modal>
   );
 }
 
@@ -193,7 +287,7 @@ function BookingRow({
           {format(new Date(booking.endDate), "MMM d, yyyy")}
           {showRenter && booking.customer?.fullName && ` · ${booking.customer.fullName}`}
         </p>
-        <p className="mt-1 text-xs font-semibold text-primary-900">${booking.totalAmount} total</p>
+        <p className="mt-1 text-xs font-semibold text-primary-900">Rs {booking.totalAmount} total</p>
       </div>
 
       <div className="flex shrink-0 gap-2">{children}</div>

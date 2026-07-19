@@ -59,6 +59,8 @@ export interface IEquipment extends Document {
 
   totalBookings: number;
 
+  views: number;
+
   createdAt: Date;
 
   updatedAt: Date;

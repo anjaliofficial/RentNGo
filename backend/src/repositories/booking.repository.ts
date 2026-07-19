@@ -138,6 +138,16 @@ class BookingRepository {
   }
 
   /**
+   * Count Completed Bookings For An Owner (for public profile stats)
+   */
+  async countCompletedForOwner(ownerId: string): Promise<number> {
+    return Booking.countDocuments({
+      owner: ownerId,
+      bookingStatus: "completed",
+    } as any);
+  }
+
+  /**
    * Find Active Booked Date Ranges For Equipment
    */
   async findActiveDateRanges(
