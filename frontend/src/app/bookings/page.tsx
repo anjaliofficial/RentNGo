@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { CalendarDays, Star } from "lucide-react";
+import { CalendarDays, MessageCircle, Star } from "lucide-react";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, Badge, Modal } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import bookingService from "@/services/booking.service";
 import reviewService from "@/services/review.service";
+import chatService from "@/services/chat.service";
 import { resolveMediaUrl } from "@/utils/format";
 import { Booking, BookingStatus } from "@/types/booking.types";
 
@@ -34,11 +36,28 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 };
 
 export default function BookingsPage() {
+  const router = useRouter();
   const [myRentals, setMyRentals] = useState<Booking[]>([]);
   const [requests, setRequests] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+  const [messagingId, setMessagingId] = useState<string | null>(null);
+
+  const messageAbout = async (booking: Booking, recipientId: string) => {
+    try {
+      setMessagingId(booking._id);
+      const { data } = await chatService.start({
+        recipientId,
+        equipmentId: booking.equipment._id,
+      });
+      router.push(`/dashboard/messages/${data.data._id}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not start conversation");
+    } finally {
+      setMessagingId(null);
+    }
+  };
 
   const load = async () => {
     try {
@@ -86,6 +105,15 @@ export default function BookingsPage() {
           <div className="space-y-3">
             {myRentals.map((booking) => (
               <BookingRow key={booking._id} booking={booking}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={messagingId === booking._id}
+                  onClick={() => messageAbout(booking, booking.owner._id)}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  Message
+                </Button>
                 {booking.bookingStatus === "pending" && (
                   <Button
                     variant="outline"
@@ -123,6 +151,15 @@ export default function BookingsPage() {
           <div className="space-y-3">
             {requests.map((booking) => (
               <BookingRow key={booking._id} booking={booking} showRenter>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={messagingId === booking._id}
+                  onClick={() => messageAbout(booking, booking.customer._id)}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  Message
+                </Button>
                 {booking.bookingStatus === "pending" && (
                   <>
                     <Button
@@ -290,7 +327,7 @@ function BookingRow({
         <p className="mt-1 text-xs font-semibold text-primary-900">Rs {booking.totalAmount} total</p>
       </div>
 
-      <div className="flex shrink-0 gap-2">{children}</div>
+      <div className="flex shrink-0 flex-wrap gap-2">{children}</div>
     </Card>
   );
 }
