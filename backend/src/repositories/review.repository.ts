@@ -43,6 +43,10 @@ class ReviewRepository {
   ): Promise<IReview[]> {
     return Review.find({
       reviewee: userId,
+      // Defensive guard: a review should never be attributed to reviewing
+      // yourself, even if a bad/legacy record exists (e.g. from before the
+      // self-review check existed, or seeded test data).
+      reviewer: { $ne: userId },
     })
       .populate("reviewer", "fullName avatar")
       .populate("equipment", "name images")

@@ -13,6 +13,10 @@ import {
   KeyRound,
   MessageCircle,
   Trash2,
+  Maximize2,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -53,6 +57,7 @@ export default function EquipmentDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [similarItems, setSimilarItems] = useState<Equipment[]>([]);
   const [activeImage, setActiveImage] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -212,14 +217,27 @@ export default function EquipmentDetailPage() {
       <Container className="py-10">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div>
-            <div className="aspect-[4/3] overflow-hidden rounded-card bg-primary-900">
+            <div className="group relative aspect-[4/3] overflow-hidden rounded-card bg-primary-900">
               {images.length > 0 ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={images[activeImage]}
-                  alt={item.title}
-                  className="h-full w-full object-cover"
-                />
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxOpen(true)}
+                    className="h-full w-full cursor-zoom-in"
+                    aria-label="View full image"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={images[activeImage]}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                  <span className="pointer-events-none absolute right-3 top-3 flex items-center gap-1 rounded-lg bg-primary-900/70 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    View full image
+                  </span>
+                </>
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-white/60">
                   No photos yet
@@ -584,6 +602,61 @@ export default function EquipmentDetailPage() {
           </div>
         )}
       </Container>
+
+      {lightboxOpen && images.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            aria-label="Close"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                aria-label="Previous image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImage((i) => (i === 0 ? images.length - 1 : i - 1));
+                }}
+                className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                aria-label="Next image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImage((i) => (i === images.length - 1 ? 0 : i + 1));
+                }}
+                className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={images[activeImage]}
+            alt={item.title}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-full max-w-full object-contain"
+          />
+
+          {images.length > 1 && (
+            <span className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-xs text-white">
+              {activeImage + 1} / {images.length}
+            </span>
+          )}
+        </div>
+      )}
+
       <Footer />
     </>
   );

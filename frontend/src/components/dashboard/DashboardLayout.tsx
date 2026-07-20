@@ -33,13 +33,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      <Sidebar />
-      <div className="flex flex-1 flex-col">
-        <Topbar crumb={crumb} />
-        <main className="flex-1 p-8 space-y-8">{children}</main>
-        <DashboardFooter />
+    <div className="flex min-h-screen flex-col bg-slate-100">
+      <div className="flex flex-1">
+        <Sidebar />
+        <div className="flex flex-1 flex-col">
+          <Topbar crumb={crumb} />
+          <main className="flex-1 p-8 space-y-8">{children}</main>
+        </div>
       </div>
+      <DashboardFooter />
     </div>
   );
 }
