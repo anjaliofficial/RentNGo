@@ -217,20 +217,20 @@ export default function EquipmentDetailPage() {
       <Container className="py-10">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div>
-            <div className="group relative aspect-[4/3] overflow-hidden rounded-card bg-primary-900">
+            <div className="group relative aspect-[4/3] overflow-hidden rounded-card bg-white">
               {images.length > 0 ? (
                 <>
                   <button
                     type="button"
                     onClick={() => setLightboxOpen(true)}
-                    className="h-full w-full cursor-zoom-in"
+                    className="flex h-full w-full cursor-zoom-in items-center justify-center p-6"
                     aria-label="View full image"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={images[activeImage]}
                       alt={item.title}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
                   </button>
                   <span className="pointer-events-none absolute right-3 top-3 flex items-center gap-1 rounded-lg bg-primary-900/70 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
@@ -239,7 +239,7 @@ export default function EquipmentDetailPage() {
                   </span>
                 </>
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-white/60">
+                <div className="flex h-full items-center justify-center text-sm text-neutral-400">
                   No photos yet
                 </div>
               )}
@@ -251,12 +251,12 @@ export default function EquipmentDetailPage() {
                   <button
                     key={img}
                     onClick={() => setActiveImage(i)}
-                    className={`h-16 w-16 overflow-hidden rounded-lg border-2 ${
+                    className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border-2 bg-white p-1 ${
                       i === activeImage ? "border-secondary-500" : "border-transparent"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <img src={img} alt="" className="h-full w-full object-contain" />
                   </button>
                 ))}
               </div>

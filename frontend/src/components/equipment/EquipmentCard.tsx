@@ -20,12 +20,12 @@ export default function EquipmentCard({ item }: { item: EquipmentCardData }) {
       className="card group flex flex-col overflow-hidden !p-0 transition-shadow hover:shadow-lg"
     >
       {item.image ? (
-        <div className="h-40 overflow-hidden">
+        <div className="flex h-40 items-center justify-center overflow-hidden bg-white p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={item.image}
             alt={item.title}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            className="h-full w-full object-contain transition-transform group-hover:scale-105"
           />
         </div>
       ) : (
