@@ -74,7 +74,7 @@ export default function MyListingsPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card h-56 animate-pulse !p-0" />
+            <div key={i} className="card h-44 animate-pulse !p-0" />
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -87,20 +87,20 @@ export default function MyListingsPage() {
             const thumbnail = resolveMediaUrl(item.images?.[0]);
             return (
               <Card key={item._id} className="flex flex-col overflow-hidden !p-0">
-                <div className="h-36 bg-primary-900">
+                <div className="flex h-24 items-center justify-center bg-white">
                   {thumbnail && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={thumbnail} alt="" className="h-full w-full object-cover" />
+                    <img src={thumbnail} alt="" className="h-full w-full object-contain" />
                   )}
                 </div>
 
-                <div className="flex flex-1 flex-col gap-2 p-4">
+                <div className="flex flex-1 flex-col gap-1.5 p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-secondary-600">
                         {EQUIPMENT_CATEGORY_LABELS[item.category]}
                       </p>
-                      <h3 className="font-headline text-sm font-semibold text-primary-900">
+                      <h3 className="font-headline text-xs font-semibold text-primary-900">
                         {item.title}
                       </h3>
                     </div>
@@ -109,27 +109,27 @@ export default function MyListingsPage() {
                     </Badge>
                   </div>
 
-                  <p className="font-headline text-base font-bold text-primary-900">
+                  <p className="font-headline text-sm font-bold text-primary-900">
                     Rs {item.pricePerDay}
-                    <span className="text-xs font-normal text-neutral-500">/day</span>
+                    <span className="text-[10px] font-normal text-neutral-500">/day</span>
                   </p>
 
-                  <div className="flex items-center gap-4 text-xs text-neutral-500">
+                  <div className="flex items-center gap-3 text-[10px] text-neutral-500">
                     <span className="flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5" /> {item.views ?? 0} views
+                      <Eye className="h-3 w-3" /> {item.views ?? 0} views
                     </span>
                     <span className="flex items-center gap-1">
-                      <CalendarCheck className="h-3.5 w-3.5" /> {item.totalBookings} bookings
+                      <CalendarCheck className="h-3 w-3" /> {item.totalBookings} bookings
                     </span>
                     {item.averageRating > 0 && (
                       <span className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 fill-secondary-500 text-secondary-500" />
+                        <Star className="h-3 w-3 fill-secondary-500 text-secondary-500" />
                         {item.averageRating.toFixed(1)}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-auto flex items-center gap-2 pt-3">
+                  <div className="mt-auto flex items-center gap-1.5 pt-2">
                     <Link href={`/dashboard/my-listings/${item._id}/edit`} className="flex-1">
                       <Button variant="outline" size="sm" className="w-full">
                         <Pencil className="h-3.5 w-3.5" />
