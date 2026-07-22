@@ -48,6 +48,10 @@ export const authenticate = async (
       throw new ApiError(401, "User not found");
     }
 
+    if (user.isSuspended) {
+      throw new ApiError(403, "Your account has been suspended.");
+    }
+
     req.user = {
       userId: String(user._id),
       role: user.role,

@@ -25,6 +25,8 @@ export interface IUser extends Document {
 
   governmentIdUrl: string;
 
+  isSuspended: boolean;
+
   refreshToken: string;
 
   createdAt: Date;

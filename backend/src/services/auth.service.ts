@@ -131,6 +131,10 @@ class AuthService {
       throw new ApiError(401, "Invalid email or password");
     }
 
+    if (user.isSuspended) {
+      throw new ApiError(403, "Your account has been suspended.");
+    }
+
     const userId = String(user._id);
     const accessToken = generateAccessToken(userId);
     const refreshToken = generateRefreshToken(userId);

@@ -104,6 +104,56 @@ class UserRepository {
       governmentIdUrl: { $ne: "" },
     }).sort({ updatedAt: -1 });
   }
+
+  /**
+   * Find Customers/Owners (Admin: Manage Users)
+   */
+  async findCustomers(search?: string): Promise<IUser[]> {
+    const filter: Record<string, unknown> = {
+      role: { $in: ["customer", "owner"] },
+    };
+
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [{ fullName: regex }, { email: regex }];
+    }
+
+    return User.find(filter as any).sort({ createdAt: -1 });
+  }
+
+  /**
+   * Find Moderators (Admin: Manage Moderators)
+   */
+  async findModerators(): Promise<IUser[]> {
+    return User.find({ role: "moderator" } as any).sort({
+      createdAt: -1,
+    });
+  }
+
+  /**
+   * Suspend Or Reinstate A User
+   */
+  async setSuspended(
+    id: string,
+    isSuspended: boolean
+  ): Promise<IUser | null> {
+    return User.findByIdAndUpdate(
+      id,
+      { isSuspended },
+      { new: true }
+    );
+  }
+
+  /**
+   * Set Role (Promote/Demote)
+   */
+  async setRole(id: string, role: string): Promise<IUser | null> {
+    return User.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true }
+    );
+  }
 }
 
 export default new UserRepository();

@@ -91,6 +91,11 @@ const userSchema = new Schema<IUser>(
       default: "",
     },
 
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+
     refreshToken: {
       type: String,
       default: "",
