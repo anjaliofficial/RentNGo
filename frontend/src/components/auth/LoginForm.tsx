@@ -32,10 +32,10 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginSchema) => {
     try {
       setLoading(true);
-      await login(data.email, data.password);
+      const user = await login(data.email, data.password);
       toast.success("Welcome back!");
-      // Redirects the authenticated session straight into the dashboard layout
-      router.push("/dashboard");
+      // Admin lands directly in the admin panel; everyone else gets the dashboard layout
+      router.push(user.role === "admin" ? "/admin/users" : "/dashboard");
     } catch (err: any) {
       toast.error(err.response?.data?.message ?? "Login failed");
     } finally {

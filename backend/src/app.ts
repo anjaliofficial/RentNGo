@@ -12,6 +12,7 @@ import bookingRoutes from "./routes/booking.routes";
 import reviewRoutes from "./routes/review.routes";
 import verificationRoutes from "./routes/verification.routes";
 import disputeRoutes from "./routes/dispute.routes";
+import adminRoutes from "./routes/admin.routes";
 import notificationRoutes from "./routes/notification.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
 import chatRoutes from "./routes/chat.routes";
@@ -92,6 +93,8 @@ app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/verifications", verificationRoutes);
 
 app.use("/api/v1/disputes", disputeRoutes);
+
+app.use("/api/v1/admin", adminRoutes);
 
 app.use(
   "/api/v1/notifications",

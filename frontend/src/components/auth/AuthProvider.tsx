@@ -34,7 +34,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   refresh: () => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
   register: (data: {
     fullName: string;
     email: string;
@@ -73,7 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user: rawUser, accessToken, refreshToken } = res.data.data;
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
-    setUser(toAuthUser(rawUser));
+    const authUser = toAuthUser(rawUser);
+    setUser(authUser);
+    return authUser;
   };
 
   const register = async (data: {

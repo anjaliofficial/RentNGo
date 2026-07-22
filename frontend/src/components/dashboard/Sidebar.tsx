@@ -17,6 +17,8 @@ import {
   PlusSquare,
   Settings,
   ShieldCheck,
+  UserCog,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "../ui";
@@ -37,6 +39,11 @@ const MODERATION_NAV = [
   { href: "/admin/disputes", label: "Disputes", icon: Flag },
 ];
 
+const ADMIN_NAV = [
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/moderators", label: "Moderators", icon: UserCog },
+];
+
 const DASHBOARD_FOOTER_NAV = [
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/help", label: "Help", icon: HelpCircle },
@@ -47,9 +54,11 @@ export default function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const nav =
-    user && ["moderator", "admin"].includes(user.role)
-      ? [...DASHBOARD_NAV, ...MODERATION_NAV]
-      : DASHBOARD_NAV;
+    user?.role === "admin"
+      ? ADMIN_NAV
+      : user?.role === "moderator"
+        ? [...DASHBOARD_NAV, ...MODERATION_NAV]
+        : DASHBOARD_NAV;
 
   const handleLogout = async () => {
     await logout();
