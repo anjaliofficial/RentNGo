@@ -12,8 +12,11 @@ import { Button } from "@/components/ui/Button";
 import bookingService from "@/services/booking.service";
 import reviewService from "@/services/review.service";
 import chatService from "@/services/chat.service";
+import disputeService from "@/services/dispute.service";
+import uploadService from "@/services/upload.service";
 import { resolveMediaUrl } from "@/utils/format";
 import { Booking, BookingStatus } from "@/types/booking.types";
+import { DisputeReason } from "@/types/dispute.types";
 
 const STATUS_TONE: Record<BookingStatus, "warning" | "trust" | "success" | "danger"> = {
   pending: "warning",
@@ -43,6 +46,7 @@ export default function BookingsPage() {
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
   const [messagingId, setMessagingId] = useState<string | null>(null);
+  const [disputeTarget, setDisputeTarget] = useState<Booking | null>(null);
 
   const messageAbout = async (booking: Booking, recipientId: string) => {
     try {
@@ -133,6 +137,12 @@ export default function BookingsPage() {
                       Leave a Review
                     </Button>
                   ))}
+                {(booking.bookingStatus === "active" ||
+                  booking.bookingStatus === "completed") && (
+                  <Button variant="outline" size="sm" onClick={() => setDisputeTarget(booking)}>
+                    Report Dispute
+                  </Button>
+                )}
               </BookingRow>
             ))}
           </div>
@@ -209,6 +219,12 @@ export default function BookingsPage() {
                       Leave a Review
                     </Button>
                   ))}
+                {(booking.bookingStatus === "active" ||
+                  booking.bookingStatus === "completed") && (
+                  <Button variant="outline" size="sm" onClick={() => setDisputeTarget(booking)}>
+                    Report Dispute
+                  </Button>
+                )}
               </BookingRow>
             ))}
           </div>
@@ -221,6 +237,15 @@ export default function BookingsPage() {
         onSubmitted={(bookingId) => {
           setReviewedIds((prev) => new Set(prev).add(bookingId));
           setReviewTarget(null);
+        }}
+      />
+
+      <DisputeModal
+        booking={disputeTarget}
+        onClose={() => setDisputeTarget(null)}
+        onSubmitted={() => {
+          setDisputeTarget(null);
+          load();
         }}
       />
     </DashboardLayout>
@@ -283,6 +308,117 @@ function ReviewModal({
 
         <Button className="w-full" onClick={submit} disabled={submitting || comment.trim().length === 0}>
           {submitting ? "Submitting..." : "Submit Review"}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+const DISPUTE_REASON_LABEL: Record<DisputeReason, string> = {
+  damaged_equipment: "Damaged equipment",
+  missing_equipment: "Missing equipment",
+  other: "Other",
+};
+
+function DisputeModal({
+  booking,
+  onClose,
+  onSubmitted,
+}: {
+  booking: Booking | null;
+  onClose: () => void;
+  onSubmitted: () => void;
+}) {
+  const [reason, setReason] = useState<DisputeReason>("damaged_equipment");
+  const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const reset = () => {
+    setReason("damaged_equipment");
+    setDescription("");
+    setFiles([]);
+  };
+
+  const submit = async () => {
+    if (!booking) return;
+    try {
+      setSubmitting(true);
+      let evidence: string[] = [];
+      if (files.length > 0) {
+        const { data } = await uploadService.uploadMultiple(files);
+        evidence = data.data.images;
+      }
+      await disputeService.file({
+        bookingId: booking._id,
+        reason,
+        description,
+        evidence,
+      });
+      toast.success("Dispute filed");
+      reset();
+      onSubmitted();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not file dispute");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={!!booking}
+      onClose={() => {
+        reset();
+        onClose();
+      }}
+      title="Report a Dispute"
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-neutral-500">{booking?.equipment?.title}</p>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="font-label text-xs font-semibold text-primary-700">Reason</span>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value as DisputeReason)}
+            className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-secondary-500 focus:outline-none"
+          >
+            {Object.entries(DISPUTE_REASON_LABEL).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <textarea
+          rows={4}
+          placeholder="Describe what happened..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-secondary-500 focus:outline-none"
+        />
+
+        <label className="flex flex-col gap-1.5">
+          <span className="font-label text-xs font-semibold text-primary-700">
+            Evidence photos (optional)
+          </span>
+          <input
+            type="file"
+            multiple
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            className="text-xs"
+          />
+        </label>
+
+        <Button
+          className="w-full"
+          onClick={submit}
+          disabled={submitting || description.trim().length === 0}
+        >
+          {submitting ? "Submitting..." : "Submit Dispute"}
         </Button>
       </div>
     </Modal>

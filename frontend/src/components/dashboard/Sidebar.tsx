@@ -6,8 +6,10 @@ import clsx from "clsx";
 import {
   CalendarDays,
   Compass,
+  Flag,
   Heart,
   HelpCircle,
+  IdCard,
   LayoutDashboard,
   ListChecks,
   LogOut,
@@ -30,6 +32,11 @@ const DASHBOARD_NAV = [
   { href: "/wishlist", label: "Wishlist", icon: Heart },
 ];
 
+const MODERATION_NAV = [
+  { href: "/admin/verifications", label: "Verifications", icon: IdCard },
+  { href: "/admin/disputes", label: "Disputes", icon: Flag },
+];
+
 const DASHBOARD_FOOTER_NAV = [
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/help", label: "Help", icon: HelpCircle },
@@ -39,6 +46,10 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const nav =
+    user && ["moderator", "admin"].includes(user.role)
+      ? [...DASHBOARD_NAV, ...MODERATION_NAV]
+      : DASHBOARD_NAV;
 
   const handleLogout = async () => {
     await logout();
@@ -68,7 +79,7 @@ export default function Sidebar() {
       )}
 
       <nav className="flex flex-1 flex-col gap-1 px-3">
-        {DASHBOARD_NAV.map((item) => {
+        {nav.map((item) => {
           const active =
             item.href === "/dashboard"
               ? pathname === "/dashboard"

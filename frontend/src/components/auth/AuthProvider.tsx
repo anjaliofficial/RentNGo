@@ -24,6 +24,7 @@ export interface AuthUser {
   emailVerified?: boolean;
   mfaEnabled?: boolean;
   verificationStatus?: string;
+  governmentIdUrl?: string;
 }
 
 /** Backend returns `_id`; normalize to the `id` field this app uses everywhere else. */

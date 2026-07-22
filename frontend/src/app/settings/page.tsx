@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import { Camera, KeyRound, LogOut, MailCheck, ShieldCheck } from "lucide-react";
+import { Camera, IdCard, KeyRound, LogOut, MailCheck, ShieldCheck } from "lucide-react";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, Avatar, Badge } from "@/components/ui";
@@ -22,11 +22,25 @@ import {
   ProfileSchema,
 } from "@/lib/validators";
 
+const VERIFICATION_TONE: Record<string, "warning" | "success" | "danger"> = {
+  pending: "warning",
+  approved: "success",
+  rejected: "danger",
+};
+
+const VERIFICATION_LABEL: Record<string, string> = {
+  pending: "Pending review",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
 export default function SettingsPage() {
   const { user, refresh, logout } = useAuth();
   const router = useRouter();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingId, setUploadingId] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const idInputRef = useRef<HTMLInputElement>(null);
 
   const profileForm = useForm<ProfileSchema>({
     resolver: zodResolver(profileSchema),
@@ -80,6 +94,24 @@ export default function SettingsPage() {
       toast.error(err.response?.data?.message ?? "Could not update avatar");
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  const onSelectGovernmentId = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    try {
+      setUploadingId(true);
+      const { data } = await uploadService.uploadSingle(file);
+      await userService.verifyGovernmentId(data.data.imageUrl);
+      await refresh();
+      toast.success("Government ID submitted for review");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Could not submit ID");
+    } finally {
+      setUploadingId(false);
     }
   };
 
@@ -210,6 +242,60 @@ export default function SettingsPage() {
             {passwordForm.formState.isSubmitting ? "Updating..." : "Update password"}
           </Button>
         </form>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 font-headline text-sm font-semibold text-primary-900">
+            <IdCard className="h-4 w-4" />
+            Identity Verification
+          </h2>
+          {user?.governmentIdUrl && user?.verificationStatus && (
+            <Badge tone={VERIFICATION_TONE[user.verificationStatus] ?? "neutral"}>
+              {VERIFICATION_LABEL[user.verificationStatus] ?? user.verificationStatus}
+            </Badge>
+          )}
+        </div>
+        <p className="mt-1 text-sm text-neutral-500">
+          Upload a government ID (citizenship, passport, or driving license) so a moderator can
+          verify your identity.
+        </p>
+        <div className="mt-4 flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={
+              uploadingId ||
+              (user?.verificationStatus === "pending" && !!user?.governmentIdUrl)
+            }
+            onClick={() => idInputRef.current?.click()}
+          >
+            {uploadingId
+              ? "Uploading..."
+              : user?.verificationStatus === "approved"
+                ? "Re-upload ID"
+                : user?.verificationStatus === "rejected"
+                  ? "Resubmit ID"
+                  : "Upload ID"}
+          </Button>
+          {user?.governmentIdUrl && (
+            <a
+              href={resolveMediaUrl(user.governmentIdUrl)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-semibold text-secondary-600 hover:text-secondary-700"
+            >
+              View submitted document
+            </a>
+          )}
+        </div>
+        <input
+          ref={idInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={onSelectGovernmentId}
+        />
       </Card>
 
       <Card className="max-w-2xl">

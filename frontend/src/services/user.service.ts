@@ -21,6 +21,10 @@ class UserService {
   updateAvatar(avatar: string) {
     return apiClient.patch("/users/avatar", { avatar });
   }
+
+  verifyGovernmentId(governmentIdUrl: string) {
+    return apiClient.patch("/users/verify-id", { governmentIdUrl });
+  }
 }
 
 export default new UserService();
