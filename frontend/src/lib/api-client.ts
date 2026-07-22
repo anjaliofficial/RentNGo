@@ -5,7 +5,7 @@ import { getAccessTokenClient } from "./cookie-client";
 // wrap themselves in <DashboardLayout>). Everything else — the landing
 // page, /browse, listing details, etc. — is public and must not force a
 // redirect just because a stale token failed to refresh.
-const PROTECTED_PATH_PREFIXES = ["/dashboard", "/bookings", "/settings", "/wishlist", "/help"];
+const PROTECTED_PATH_PREFIXES = ["/dashboard", "/bookings", "/settings", "/wishlist", "/help", "/admin"];
 
 const isProtectedPath = (pathname: string) =>
   PROTECTED_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));

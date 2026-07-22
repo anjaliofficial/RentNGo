@@ -5,6 +5,10 @@ export enum NotificationType {
   REVIEW = "review",
   PAYMENT = "payment",
   SYSTEM = "system",
+  VERIFICATION_APPROVED = "verification_approved",
+  VERIFICATION_REJECTED = "verification_rejected",
+  DISPUTE_FILED = "dispute_filed",
+  DISPUTE_RESOLVED = "dispute_resolved",
 }
 
 export interface INotification extends Document {

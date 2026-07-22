@@ -23,6 +23,8 @@ export interface IUser extends Document {
 
   verificationStatus: string;
 
+  governmentIdUrl: string;
+
   refreshToken: string;
 
   createdAt: Date;
@@ -54,6 +56,8 @@ export interface IUserResponse {
   mfaEnabled: boolean;
 
   verificationStatus: string;
+
+  governmentIdUrl: string;
 
   createdAt: Date;
 

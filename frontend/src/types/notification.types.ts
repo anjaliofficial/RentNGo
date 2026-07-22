@@ -1,4 +1,12 @@
-export type NotificationType = "booking" | "review" | "payment" | "system";
+export type NotificationType =
+  | "booking"
+  | "review"
+  | "payment"
+  | "system"
+  | "verification_approved"
+  | "verification_rejected"
+  | "dispute_filed"
+  | "dispute_resolved";
 
 export interface NotificationSender {
   _id: string;

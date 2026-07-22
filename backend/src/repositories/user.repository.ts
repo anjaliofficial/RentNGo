@@ -94,6 +94,16 @@ class UserRepository {
       }
     );
   }
+
+  /**
+   * Find Pending Verifications (submitted, awaiting moderator decision)
+   */
+  async findPendingVerifications(): Promise<IUser[]> {
+    return User.find({
+      verificationStatus: "pending",
+      governmentIdUrl: { $ne: "" },
+    }).sort({ updatedAt: -1 });
+  }
 }
 
 export default new UserRepository();

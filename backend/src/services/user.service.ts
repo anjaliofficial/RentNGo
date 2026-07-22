@@ -1,5 +1,6 @@
 import userRepository from "../repositories/user.repository";
 import bookingRepository from "../repositories/booking.repository";
+import notificationService from "./notification.service";
 
 import {
   UpdateProfileDto,
@@ -156,6 +157,61 @@ class UserService {
     }
 
     return user;
+  }
+
+  /**
+   * Get Pending Verifications (moderator queue)
+   */
+  async getPendingVerifications() {
+    return userRepository.findPendingVerifications();
+  }
+
+  /**
+   * Approve Or Reject A Submitted Verification
+   */
+  async moderateVerification(
+    userId: string,
+    moderatorId: string,
+    outcome: "approved" | "rejected",
+    note?: string
+  ) {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found.");
+    }
+
+    if (user.verificationStatus !== "pending") {
+      throw new ApiError(
+        400,
+        "This verification has already been decided."
+      );
+    }
+
+    const updated = await userRepository.updateVerificationStatus(
+      userId,
+      outcome
+    );
+
+    await notificationService.createAndEmitNotification({
+      receiver: userId,
+      sender: moderatorId,
+      title:
+        outcome === "approved"
+          ? "ID verification approved"
+          : "ID verification rejected",
+      message:
+        note ||
+        (outcome === "approved"
+          ? "Your government ID has been verified."
+          : "Your government ID submission was rejected."),
+      type:
+        outcome === "approved"
+          ? "verification_approved"
+          : "verification_rejected",
+    });
+
+    return updated;
   }
 }
 

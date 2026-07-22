@@ -23,3 +23,7 @@ export interface UpdateAvatarDto {
 export interface VerifyGovernmentIdDto {
   governmentIdUrl: string;
 }
+
+export interface ModerateVerificationDto {
+  note?: string;
+}

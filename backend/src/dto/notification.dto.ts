@@ -1,3 +1,5 @@
+import { NotificationType } from "../types/notification.types";
+
 export interface CreateNotificationDto {
   receiver: string;
 
@@ -7,11 +9,7 @@ export interface CreateNotificationDto {
 
   message: string;
 
-  type:
-    | "booking"
-    | "review"
-    | "payment"
-    | "system";
+  type: `${NotificationType}`;
 }
 
 export interface MarkNotificationReadDto {

@@ -86,6 +86,11 @@ const userSchema = new Schema<IUser>(
       default: VerificationStatus.PENDING,
     },
 
+    governmentIdUrl: {
+      type: String,
+      default: "",
+    },
+
     refreshToken: {
       type: String,
       default: "",
