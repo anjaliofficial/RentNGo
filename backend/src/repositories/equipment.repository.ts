@@ -2,6 +2,10 @@ import Equipment from "../models/equipment.model";
 import { IEquipment } from "../types/equipment.types";
 import { EquipmentSearchDto } from "../dto/equipment-search.dto";
 
+/** Escape regex metacharacters so user input is matched literally, never compiled as regex syntax. */
+const escapeRegex = (str: string): string =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 class EquipmentRepository {
   /**
    * Create Equipment
@@ -108,18 +112,36 @@ async search(
     query.owner = owner;
   }
 
+  // -----------------------------------------------------------------
+  // BEFORE (vulnerable) - Finding 1: NoSQL Injection in Equipment Search
+  // Raw user input was compiled directly as a regex pattern. A malformed
+  // regex character (e.g. an unbalanced "(") threw an uncaught exception
+  // and crashed the query with a 500, and crafted input could otherwise
+  // manipulate the query's matching behavior:
+  
+    query.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
+    query.location = { $regex: location, $options: "i" };
+  
+  // -----------------------------------------------------------------
+  // AFTER (fixed): escapeRegex() escapes regex metacharacters first, so
+  // user input is always matched as a literal string, never compiled as
+  // regex syntax.
   // Search
   if (search) {
+    const safeSearch = escapeRegex(search);
     query.$or = [
       {
         title: {
-          $regex: search,
+          $regex: safeSearch,
           $options: "i",
         },
       },
       {
         description: {
-          $regex: search,
+          $regex: safeSearch,
           $options: "i",
         },
       },
@@ -134,7 +156,7 @@ async search(
   // Location
   if (location) {
     query.location = {
-      $regex: location,
+      $regex: escapeRegex(location),
       $options: "i",
     };
   }

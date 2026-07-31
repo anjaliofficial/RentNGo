@@ -71,7 +71,20 @@ class UserController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const body: UpdateProfileDto = req.body;
+      // ---------------------------------------------------------------
+      // BEFORE (vulnerable) - Finding 2: Mass Assignment / Privilege Escalation
+      // `req.body` was cast directly to UpdateProfileDto. That cast is a
+      // compile-time-only type annotation with no runtime effect, so any
+      // extra field a client sent (e.g. "role": "admin", "trustScore": 100)
+      // passed straight through to the database update untouched:
+      //
+      //   const body: UpdateProfileDto = req.body;
+      //
+      // ---------------------------------------------------------------
+      // AFTER (fixed): explicitly whitelist only the editable fields.
+      // Anything else the client tries to smuggle in is silently dropped.
+      const { fullName, phone, address, bio } = req.body;
+      const body: UpdateProfileDto = { fullName, phone, address, bio };
 
       const user = await userService.updateProfile(
         req.user!.userId,

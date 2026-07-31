@@ -1,10 +1,29 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 
 import authController from "../controllers/auth.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
+
+// ---------------------------------------------------------------------
+// BEFORE (vulnerable) - Finding 5: Weak Password Policy Enabling
+// Unauthorized Account Access
+// /login had no rate limiting at all, allowing unlimited login attempts
+// per IP/account and making brute-force / credential-stuffing trivial:
+//
+//   router.post("/login", authController.login);
+//
+// ---------------------------------------------------------------------
+// AFTER (fixed): loginLimiter caps each IP to 5 attempts per 15 minutes.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: "Too many login attempts. Please try again in 15 minutes.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * Public Routes
@@ -14,7 +33,7 @@ const router = Router();
 router.post("/register", authController.register);
 
 // Login
-router.post("/login", authController.login);
+router.post("/login", loginLimiter, authController.login);
 
 // Refresh Token
 router.post("/refresh", authController.refresh);

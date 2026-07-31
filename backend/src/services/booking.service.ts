@@ -126,10 +126,33 @@ class BookingService {
     return bookingRepository.findAll();
   }
 
+  // -----------------------------------------------------------------
+  // BEFORE (vulnerable) - Finding 3: IDOR on Bookings
+  // Any authenticated user could fetch ANY booking by guessing/incrementing
+  // its ID — the service never checked who was asking, only whether the
+  // booking existed:
+  
+    // async getBookingById(id: string) {
+    //   const booking = await bookingRepository.findById(id);
+    //   if (!booking) {
+    //     throw new ApiError(404, "Booking not found.");
+    //   }
+    //   return booking;
+    // }
+  //
+  // -----------------------------------------------------------------
+  // AFTER (fixed): the requester's ID/role now flow in, and the booking
+  // is only returned if they are the customer, the owner, or an admin.
+  // Everyone else gets a 403. (Live code below is the AFTER version.)
+  // -----------------------------------------------------------------
   /**
    * Get Booking By ID
    */
-  async getBookingById(id: string) {
+  async getBookingById(
+    id: string,
+    requesterId: string,
+    requesterRole: string
+  ) {
     const booking =
       await bookingRepository.findById(id);
 
@@ -137,6 +160,17 @@ class BookingService {
       throw new ApiError(
         404,
         "Booking not found."
+      );
+    }
+
+    const isParticipant =
+      (booking.customer as any)._id.toString() === requesterId ||
+      (booking.owner as any)._id.toString() === requesterId;
+
+    if (!isParticipant && requesterRole !== "admin") {
+      throw new ApiError(
+        403,
+        "You are not allowed to view this booking."
       );
     }
 

@@ -63,16 +63,30 @@ class BookingController {
 
   /**
    * GET /api/v1/bookings/:id
+   *
+   * BEFORE (vulnerable) - Finding 3: IDOR on Bookings
+   * `req` was typed as the plain Express `Request`, and only the booking
+   * ID was passed to the service — the requester's identity was never
+   * available to check ownership against:
+   *
+   *   async getBookingById(req: Request, res: Response, next: NextFunction) {
+   *     const booking = await bookingService.getBookingById(req.params.id as string);
+   *     ...
+   *
+   * AFTER (fixed): `AuthRequest` carries the authenticated user, and their
+   * ID + role are passed through so the service can enforce ownership.
    */
   async getBookingById(
-    req: Request,
+    req: AuthRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
       const booking =
         await bookingService.getBookingById(
-          req.params.id as string
+          req.params.id as string,
+          req.user!.userId,
+          req.user!.role
         );
 
       successResponse(

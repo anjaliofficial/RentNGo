@@ -67,7 +67,7 @@ class UserService {
   ) {
     const user = await userRepository.updateProfile(id, body);
 
-    if (!user) {
+    if (!user) { 
       throw new ApiError(404, "User not found.");
     }
 

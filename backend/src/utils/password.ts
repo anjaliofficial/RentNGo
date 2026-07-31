@@ -31,3 +31,22 @@ export const comparePassword = async (
 ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
+
+// -----------------------------------------------------------------------
+// BEFORE (vulnerable) - Finding 5: Weak Password Policy Enabling
+// Unauthorized Account Access
+// No password strength check existed anywhere in the codebase — any
+// string, including "123456" or "password", was accepted by register().
+// -----------------------------------------------------------------------
+// AFTER (fixed): isStrongPassword() enforces 8+ characters with at least
+// one uppercase letter, one lowercase letter, one digit, and one symbol.
+/**
+ * @param password Plain password to validate
+ * @returns true if the password meets the minimum complexity requirements
+ */
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+export const isStrongPassword = (password: string): boolean => {
+  return STRONG_PASSWORD_REGEX.test(password);
+};

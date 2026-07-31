@@ -27,7 +27,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: [process.env.CLIENT_URL as string, "http://192.168.72.1:3000"],
     credentials: true,
   })
 );

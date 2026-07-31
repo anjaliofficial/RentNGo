@@ -14,6 +14,20 @@ export const errorHandler = (
     });
   }
 
+  // Malformed input that reached the database layer (bad ObjectId, failed
+  // schema validation, invalid regex, etc.) is a client mistake, not a
+  // server failure — respond 400 instead of leaking a raw 500.
+  if (
+    err.name === "CastError" ||
+    err.name === "ValidationError" ||
+    err.name === "MongoServerError"
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid request data.",
+    });
+  }
+
   console.error(err);
 
   return res.status(500).json({

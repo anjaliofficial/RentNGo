@@ -3,6 +3,8 @@ import { Router } from "express";
 import notificationController from "../controllers/notification.controller";
 
 import { authenticate } from "../middlewares/auth.middleware";
+import { authorize } from "../middlewares/role.middleware";
+import router from "./upload.routes";
 
 const router = Router();
 
@@ -32,11 +34,29 @@ router.get(
   notificationController.getUnreadCount
 );
 
-// Create notification
-// (Mainly used internally or by admin)
+// ---------------------------------------------------------------------
+// BEFORE (vulnerable) - Finding 4: Broken Access Control / Notification Spoofing
+// Any authenticated user could hit this endpoint and set an arbitrary
+// "sender" in the request body, letting them impersonate an admin or
+// moderator and send phishing-style notifications to any user:
+
+  router.post(
+    "/",
+    authenticate,
+    notificationController.createNotification
+  );
+//
+// ---------------------------------------------------------------------
+// AFTER (fixed): authorize("admin") restricts this endpoint to admins
+// only. Every other part of the app creates notifications server-side
+// via notificationService.createAndEmitNotification(), where the sender
+// is derived from trusted server logic, never from client input.
+// Create notification (admin only)
 router.post(
   "/",
   authenticate,
+  authorize("admin"),
+
   notificationController.createNotification
 );
 

